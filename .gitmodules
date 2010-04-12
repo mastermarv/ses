@@ -1,0 +1,3 @@
+[submodule "vendor/apache-activemq"]
+	path = vendor/apache-activemq
+	url = git@git.infopark:vendor_apache-activemq
