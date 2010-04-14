@@ -20,3 +20,11 @@ production:
   database: db/production.sqlite3
   pool: 5
   timeout: 5000
+
+cms:
+  adapter: mysql
+  host: localhost
+  database: test_ses_lucene
+  username: test_ses_lucene
+  password: test_ses_lucene
+  encoding: utf8
