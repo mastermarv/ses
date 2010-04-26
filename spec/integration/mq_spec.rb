@@ -51,7 +51,7 @@ describe "CM Tcl callback objectChangeCallback" do
       sleep 1
       break unless @received_messages.empty?
     end
-    @received_messages.first.body.should == %!{"action":"change","id":"2001"}\n!
+    @received_messages.first.body.should == "2001"
   end
 
   it "should send multiple object change messages to the message broker" do
@@ -61,14 +61,7 @@ describe "CM Tcl callback objectChangeCallback" do
       sleep 1
       break unless @received_messages.size > 5
     end
-    @received_messages.map(&:body).should == [
-      %!{"action":"change","id":"2019"}\n!,
-      %!{"action":"change","id":"2027"}\n!,
-      %!{"action":"change","id":"2044"}\n!,
-      %!{"action":"change","id":"2053"}\n!,
-      %!{"action":"change","id":"2062"}\n!,
-      %!{"action":"change","id":"2071"}\n!
-    ]
+    @received_messages.map(&:body).should == %w(2019 2027 2044 2053 2062 2071)
   end
 
 end

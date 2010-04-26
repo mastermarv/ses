@@ -11,9 +11,7 @@ module Infopark
             :ack => "client",
             "activemq.prefetchSize" => 1,
             "activemq.subscriptionName" => "ses-lucene") do |msg|
-          message = JSON.parse(msg.body)
-          obj_id = message['id']
-          obj = Obj.find(obj_id)
+          obj = Obj.find(msg.body)
           solr_client = RSolr.connect
 
           # FIXED in rsolr master, gem not yet released:

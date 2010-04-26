@@ -10,5 +10,5 @@ client = Stomp::Client.new("stomp://:@localhost:61613?initialReconnectDelay=5000
 instance = ENV['INSTANCE']
 
 ARGF.each_line do |message|
-  client.publish("/topic/#{instance}/object-changes", message, :persistent => true)
+  client.publish("/topic/#{instance}/object-changes", message.chomp, :persistent => true)
 end
