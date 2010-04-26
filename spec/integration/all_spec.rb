@@ -15,9 +15,12 @@ describe "ActiveMQ + Solr integration" do
 
   before do
     @solr_client = RSolr.connect
+    @ses_indexer = Infopark::SES::Indexer.new
+    @ses_indexer.start
   end
 
   after do
+    @ses_indexer.stop
   end
 
   after(:all) do
@@ -27,16 +30,12 @@ describe "ActiveMQ + Solr integration" do
   end
 
   it "should find the changes made with the CM in the Solr search engine" do
-    @solr_client.select(:q => 'name:401')['response']['numFound'].should == 0
-    #@solr_client.select(:q => 'path:/misc/errors/401')['response']['numFound'].should == 0
-    # todo: im body suchen
+    @solr_client.select(:q => 'name:999')['response']['numFound'].should == 0
+    @cm.tcl "obj withPath /global/errors create name 999 objClass document"
 
-    @cm.tcl "obj withPath /global set name misc"
-
-    # wait
-
-    @solr_client.select(:q => 'name:401')['response']['numFound'].should == 1
-    #@solr_client.select(:q => 'path:/misc/errors/401')['response']['numFound'].should == 1
+    lambda {
+      @solr_client.select(:q => 'name:999')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
   end
 
 end

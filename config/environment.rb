@@ -21,6 +21,7 @@ Rails::Initializer.run do |config|
   # config.gem "aws-s3", :lib => "aws/s3"
   config.gem 'stomp'
   config.gem 'rsolr'
+  config.gem 'json'
   config.gem 'infopark_rails_connector'
 
   # Only load the plugins named here, in the order given (default is alphabetical).

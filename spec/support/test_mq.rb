@@ -33,6 +33,7 @@ class TestMQ
       puts "Waiting for MQ to start up"
       sleep 1
     end
+    puts "MQ is up and running"
   end
 
   def teardown

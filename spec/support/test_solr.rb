@@ -32,6 +32,7 @@ class TestSolr
       puts "Waiting for Solr to start up"
       sleep 1
     end
+    puts "Solr is up and running"
   end
 
   def teardown
