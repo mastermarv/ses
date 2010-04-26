@@ -47,4 +47,17 @@ describe "ActiveMQ + Solr integration" do
     }.should eventually_be(1).within(10.seconds)
   end
 
+  it "should find an object whose body has changed" do
+    @solr_client.select(:q => 'body:Boddie')['response']['numFound'].should == 0
+    @cm.tcl %!
+      obj root edit
+      obj root editedContent set blob "Das ist der Boddie des Objekts"
+      obj root release
+    !
+
+    lambda {
+      @solr_client.select(:q => 'body:Boddie')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+  end
+
 end
