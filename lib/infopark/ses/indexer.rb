@@ -11,15 +11,24 @@ module Infopark
             :ack => "client",
             "activemq.prefetchSize" => 1,
             "activemq.subscriptionName" => "ses-lucene") do |msg|
-          obj = Obj.find(msg.body)
-          solr_client = RSolr.connect
+          begin
+            solr_client = RSolr.connect
 
-          # FIXED in rsolr master, gem not yet released:
-          #solr_client.add({:id => 1, :name => obj.name}, {:commitWithin => 1.0})
-          solr_client.add(:id => obj.id, :name => obj.name, :path => obj.path, :body => obj.body)
-          solr_client.commit
+            obj_id = msg.body
+            begin
+              obj = Obj.find(obj_id)
+              # FIXED in rsolr master, gem not yet released:
+              #solr_client.add({:id => obj.id, ...}, {:commitWithin => 1.0})
+              solr_client.add(:id => obj.id, :name => obj.name, :path => obj.path, :body => obj.body)
+            rescue ::ActiveRecord::RecordNotFound
+              solr_client.delete_by_id(obj_id)
+            end
 
-          mq_client.acknowledge(msg)
+            solr_client.commit
+            mq_client.acknowledge(msg)
+          rescue StandardError => e
+            $stderr.puts "Unhandled exception in MQ subscriber block: #{e.inspect}"
+          end
         end
       end
 

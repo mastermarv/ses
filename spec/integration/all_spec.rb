@@ -60,4 +60,17 @@ describe "ActiveMQ + Solr integration" do
     }.should eventually_be(1).within(10.seconds)
   end
 
+  it "should not find deleted objects in the Solr search engine" do
+    @cm.tcl "obj root create name tobedel objClass document"
+    lambda {
+      @solr_client.select(:q => 'name:tobedel')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+
+    @cm.tcl "obj withPath /tobedel delete"
+
+    lambda {
+      @solr_client.select(:q => 'name:tobedel')['response']['numFound']
+    }.should eventually_be(0).within(10.seconds)
+  end
+
 end
