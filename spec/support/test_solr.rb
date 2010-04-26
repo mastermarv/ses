@@ -20,7 +20,21 @@ class TestSolr
   end
 
   def patch_config
-    # welche felder werden indiziert? (siehe schema.xml)
+    config = "#{install_dir}/example/solr/conf/schema.xml"
+    contents = File.read(config)
+    fields = <<EOS
+<fields>
+  <field name="id" type="string" indexed="true" stored="true" required="true" />
+  <field name="name" type="string" indexed="true" stored="false" required="false" />
+  <field name="path" type="string" indexed="true" stored="false" required="false" />
+  <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+  <dynamicField name="*" type="text" indexed="true" stored="false" multiValued="true"/>
+</fields>
+EOS
+    contents.gsub!(/<fields>.*?<\/fields>/m, fields)
+    open(config, "w") do |f|
+      f << contents
+    end
   end
 
   def start

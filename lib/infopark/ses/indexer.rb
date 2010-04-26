@@ -16,7 +16,7 @@ module Infopark
 
           # FIXED in rsolr master, gem not yet released:
           #solr_client.add({:id => 1, :name => obj.name}, {:commitWithin => 1.0})
-          solr_client.add(:id => 1, :name => obj.name)
+          solr_client.add(:id => obj.id, :name => obj.name, :path => obj.path)
           solr_client.commit
 
           mq_client.acknowledge(msg)

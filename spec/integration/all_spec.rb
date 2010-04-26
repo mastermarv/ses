@@ -38,4 +38,13 @@ describe "ActiveMQ + Solr integration" do
     }.should eventually_be(1).within(10.seconds)
   end
 
+  it "should find objects whose paths have changed" do
+    @solr_client.select(:q => 'path:/misc/errors/401')['response']['numFound'].should == 0
+    @cm.tcl "obj withPath /global set name misc"
+
+    lambda {
+      @solr_client.select(:q => 'path:/misc/errors/401')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+  end
+
 end
