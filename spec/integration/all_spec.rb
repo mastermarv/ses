@@ -31,7 +31,10 @@ describe "ActiveMQ + Solr integration" do
 
   it "should find the changes made with the CM in the Solr search engine" do
     @solr_client.select(:q => 'name:999')['response']['numFound'].should == 0
-    @cm.tcl "obj withPath /global/errors create name 999 objClass document"
+    @cm.tcl "
+      obj root create name 999 objClass document
+      obj withPath /999 release
+    "
 
     lambda {
       @solr_client.select(:q => 'name:999')['response']['numFound']
@@ -61,7 +64,10 @@ describe "ActiveMQ + Solr integration" do
   end
 
   it "should not find deleted objects in the Solr search engine" do
-    @cm.tcl "obj root create name tobedel objClass document"
+    @cm.tcl "
+      obj root create name tobedel objClass document
+      obj withPath /tobedel release
+    "
     lambda {
       @solr_client.select(:q => 'name:tobedel')['response']['numFound']
     }.should eventually_be(1).within(10.seconds)
@@ -70,6 +76,22 @@ describe "ActiveMQ + Solr integration" do
 
     lambda {
       @solr_client.select(:q => 'name:tobedel')['response']['numFound']
+    }.should eventually_be(0).within(10.seconds)
+  end
+
+  it "should only find released objects in the Solr search engine" do
+    @cm.tcl "
+      obj root create name tobeunreleased objClass document
+      obj withPath /tobeunreleased release
+    "
+    lambda {
+      @solr_client.select(:q => 'name:tobeunreleased')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+
+    @cm.tcl "obj withPath /tobeunreleased unrelease"
+
+    lambda {
+      @solr_client.select(:q => 'name:tobeunreleased')['response']['numFound']
     }.should eventually_be(0).within(10.seconds)
   end
 

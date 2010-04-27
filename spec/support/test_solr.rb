@@ -27,6 +27,8 @@ class TestSolr
   <field name="id" type="string" indexed="true" stored="true" required="true" />
   <field name="name" type="string" indexed="true" stored="false" required="false" />
   <field name="path" type="string" indexed="true" stored="false" required="false" />
+  <field name="valid_from" type="string" indexed="true" stored="false" required="false" />
+  <field name="valid_until" type="string" indexed="true" stored="false" required="false" />
   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
   <dynamicField name="*" type="text" indexed="true" stored="false" multiValued="true"/>
 </fields>
