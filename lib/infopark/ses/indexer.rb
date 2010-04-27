@@ -3,6 +3,13 @@ module Infopark
 
     class Indexer
 
+      # The callback that decides which fields are to be indexed. See
+      # config/initializers/indexer.rb. It may return nil to indicate that the
+      # object should not be indexed.
+      def self.index_fields(&block)
+        @@index_fields_callback = block
+      end
+
       def initialize
       end
 
@@ -17,9 +24,11 @@ module Infopark
             obj_id = msg.body
             begin
               obj = Obj.find(obj_id)
-              # FIXED in rsolr master, gem not yet released:
-              #solr_client.add({:id => obj.id, ...}, {:commitWithin => 1.0})
-              solr_client.add(:id => obj.id, :name => obj.name, :path => obj.path, :body => obj.body)
+              if fields = @@index_fields_callback.call(obj)
+                # FIXED in rsolr master, gem not yet released:
+                #solr_client.add(fields, {:commitWithin => 1.0})
+                solr_client.add(fields)
+              end
             rescue ::ActiveRecord::RecordNotFound
               solr_client.delete_by_id(obj_id)
             end
