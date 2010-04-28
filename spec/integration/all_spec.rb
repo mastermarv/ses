@@ -102,7 +102,7 @@ describe "ActiveMQ + Solr integration" do
 
     @cm.tcl "
       obj withPath /future edit
-      obj withPath /future editedContent set validFrom #{(Time.now + 3).to_iso}
+      obj withPath /future editedContent set validFrom #{3.days.from_now.to_iso}
       obj withPath /future release
     "
 
@@ -143,7 +143,7 @@ describe "ActiveMQ + Solr integration" do
     @cm.tcl "
       obj root create name valid_from_past_and_valid_until objClass document
       obj withPath /valid_from_past_and_valid_until editedContent set validFrom #{4.days.ago.to_iso}
-      obj withPath /valid_from_past_and_valid_until editedContent set validUntil #{(Time.now + 2).to_iso}
+      obj withPath /valid_from_past_and_valid_until editedContent set validUntil #{2.days.from_now.to_iso}
       obj withPath /valid_from_past_and_valid_until release
     "
 
