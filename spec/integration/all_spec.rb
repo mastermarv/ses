@@ -37,7 +37,8 @@ describe "ActiveMQ + Solr integration" do
     @cm.teardown
   end
 
-  it "should find the changes made with the CM in the Solr search engine" do
+
+  it "an object should be found under its name" do
     hit_count('name:999').should == 0
     @cm.tcl "
       obj root create name 999 objClass document
@@ -47,14 +48,16 @@ describe "ActiveMQ + Solr integration" do
     lambda { hit_count('name:999') }.should eventually_be(1)
   end
 
-  it "should find objects whose paths have changed" do
+
+  it "an object whose path has changed should be found under the new path" do
     hit_count('path:/misc/errors/401').should == 0
     @cm.tcl "obj withPath /global set name misc"
 
     lambda { hit_count('path:/misc/errors/401') }.should eventually_be(1)
   end
 
-  it "should find an object whose body has changed" do
+
+  it "an object which has a body should be found by searching a word of the body" do
     hit_count('body:Boddie').should == 0
     @cm.tcl %!
       obj root edit
@@ -65,31 +68,32 @@ describe "ActiveMQ + Solr integration" do
     lambda { hit_count('body:Boddie') }.should eventually_be(1)
   end
 
-  it "should not find deleted objects in the Solr search engine" do
+
+  it "an object which no longer exists should not be found" do
     @cm.tcl "
       obj root create name tobedel objClass document
       obj withPath /tobedel release
     "
     lambda { hit_count('name:tobedel') }.should eventually_be(1)
-
     @cm.tcl "obj withPath /tobedel delete"
 
     lambda { hit_count('name:tobedel') }.should eventually_be(0)
   end
 
-  it "should only find released objects in the Solr search engine" do
+
+  it "an object which is not released should not be found" do
     @cm.tcl "
       obj root create name tobeunreleased objClass document
       obj withPath /tobeunreleased release
     "
     lambda { hit_count('name:tobeunreleased') }.should eventually_be(1)
-
     @cm.tcl "obj withPath /tobeunreleased unrelease"
 
     lambda { hit_count('name:tobeunreleased') }.should eventually_be(0)
   end
 
-  it "should not find objects which are valid in the future" do
+
+  it "an object which will be valid in the future should not be found" do
     @cm.tcl "
       obj root create name future objClass document
       obj withPath /future release
@@ -101,10 +105,12 @@ describe "ActiveMQ + Solr integration" do
       obj withPath /future editedContent set validFrom #{(Time.now + 3).to_iso}
       obj withPath /future release
     "
+
     lambda { hit_count('name:future') }.should eventually_be(0)
   end
 
-  it "should not find objects which are valid in the past" do
+
+  it "an object which was valid in the past should not be found" do
     @cm.tcl "
       obj root create name past objClass document
       obj withPath /past release
@@ -117,25 +123,30 @@ describe "ActiveMQ + Solr integration" do
       obj withPath /past editedContent set validUntil #{3.days.ago.to_iso}
       obj withPath /past release
     "
+
     lambda { hit_count('name:past') }.should eventually_be(0)
   end
 
-  it "should find objects which are valid since the past" do
+
+  it "an object which is valid since the past and will not become invalid should be found" do
     @cm.tcl "
       obj root create name valid_from_past_and_valid_until_open_end objClass document
       obj withPath /valid_from_past_and_valid_until_open_end editedContent set validFrom #{4.days.ago.to_iso}
       obj withPath /valid_from_past_and_valid_until_open_end release
     "
+
     lambda { hit_count("name:valid_from_past_and_valid_until_open_end") }.should eventually_be(1)
   end
 
-  it "should find objects which are valid since the past but invalid in the future" do
+
+  it "an object which is valid since the past but will become invalid in the future should be found" do
     @cm.tcl "
       obj root create name valid_from_past_and_valid_until objClass document
       obj withPath /valid_from_past_and_valid_until editedContent set validFrom #{4.days.ago.to_iso}
       obj withPath /valid_from_past_and_valid_until editedContent set validUntil #{(Time.now + 2).to_iso}
       obj withPath /valid_from_past_and_valid_until release
     "
+
     lambda { hit_count('name:valid_from_past_and_valid_until') }.should eventually_be(1)
   end
 
