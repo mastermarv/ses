@@ -95,4 +95,84 @@ describe "ActiveMQ + Solr integration" do
     }.should eventually_be(0).within(10.seconds)
   end
 
+  it "should not find objects which are valid in the future" do
+    @cm.tcl "
+      obj root create name future objClass document
+      obj withPath /future release
+    "
+    lambda {
+      @solr_client.select(:q => 'name:future')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+
+    @cm.tcl "
+      obj withPath /future edit
+      obj withPath /future editedContent set validFrom #{(Time.now + 3).to_iso}
+      obj withPath /future release
+    "
+    lambda {
+      filter_query = [
+        "valid_from:[* TO #{Time.now.to_iso}]",
+        "valid_until:[#{Time.now.to_iso} TO *]"
+      ]
+      @solr_client.select(:q => 'name:future', :fq => filter_query)['response']['numFound']
+    }.should eventually_be(0).within(10.seconds)
+  end
+
+  it "should not find objects which are valid in the past" do
+    @cm.tcl "
+      obj root create name past objClass document
+      obj withPath /past release
+    "
+    lambda {
+      @solr_client.select(:q => 'name:past')['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+
+    @cm.tcl "
+      obj withPath /past edit
+      obj withPath /past editedContent set validFrom #{4.days.ago.to_iso}
+      obj withPath /past editedContent set validUntil #{3.days.ago.to_iso}
+      obj withPath /past release
+    "
+    lambda {
+      filter_query = [
+        "valid_from:[* TO #{Time.now.to_iso}]",
+        "valid_until:[#{Time.now.to_iso} TO *]"
+      ]
+      @solr_client.select(:q => 'name:past', :fq => filter_query)['response']['numFound']
+    }.should eventually_be(0).within(10.seconds)
+  end
+
+  it "should find objects which are valid since the past" do
+    @cm.tcl "
+      obj root create name valid_from_past_and_valid_until_open_end objClass document
+      obj withPath /valid_from_past_and_valid_until_open_end editedContent set validFrom #{4.days.ago.to_iso}
+      obj withPath /valid_from_past_and_valid_until_open_end release
+    "
+    lambda {
+      filter_query = [
+        "valid_from:[* TO #{Time.now.to_iso}]",
+        "valid_until:[#{Time.now.to_iso} TO *]"
+      ]
+      @solr_client.select(:q => 'name:valid_from_past_and_valid_until_open_end',
+                          :fq => filter_query)['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+  end
+
+  it "should find objects which are valid since the past but invalid in the future" do
+    @cm.tcl "
+      obj root create name valid_from_past_and_valid_until objClass document
+      obj withPath /valid_from_past_and_valid_until editedContent set validFrom #{4.days.ago.to_iso}
+      obj withPath /valid_from_past_and_valid_until editedContent set validUntil #{(Time.now + 2).to_iso}
+      obj withPath /valid_from_past_and_valid_until release
+    "
+    lambda {
+      filter_query = [
+        "valid_from:[* TO #{Time.now.to_iso}]",
+        "valid_until:[#{Time.now.to_iso} TO *]"
+      ]
+      @solr_client.select(:q => 'name:valid_from_past_and_valid_until',
+                          :fq => filter_query)['response']['numFound']
+    }.should eventually_be(1).within(10.seconds)
+  end
+
 end
