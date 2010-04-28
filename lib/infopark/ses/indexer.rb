@@ -31,6 +31,21 @@ module Infopark
         mq_client.close
       end
 
+      def reindex_all
+        pbar = ProgressBar.new("indexing", Obj.count)
+        solr_client = RSolr.connect
+        solr_client.delete_by_query('*:*')
+        Obj.find_each do |obj|
+          if fields = @@index_fields_callback.call(obj)
+            ActiveRecord::Base.logger.debug "indexing obj #{obj.id}: #{obj.path}"
+            solr_client.add(fields)
+          end
+          pbar.inc
+        end
+        solr_client.commit
+        pbar.finish
+      end
+
       private
 
       def index(obj_id)

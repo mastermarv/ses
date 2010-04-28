@@ -22,6 +22,7 @@ Rails::Initializer.run do |config|
   config.gem 'stomp'
   config.gem 'rsolr'
   config.gem 'infopark_rails_connector'
+  config.gem 'ruby-progressbar', :lib => 'progressbar'
 
   # Only load the plugins named here, in the order given (default is alphabetical).
   # :all can be used as a placeholder for all plugins not explicitly named
