@@ -11,6 +11,7 @@ class TestMQ
 
   def setup
     rm_rf install_dir
+    mkdir_p @install_dir
     system "rsync -a --exclude=/.git #{vendor_dir}/ #{install_dir}/"
     patch_config
     start
