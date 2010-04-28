@@ -2,7 +2,7 @@ class EventuallyBe
 
   def initialize(expected)
     @expected = expected
-    @seconds = 1
+    @seconds = 20
   end
 
   def matches?(event_proc)
