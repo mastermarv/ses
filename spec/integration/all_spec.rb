@@ -57,7 +57,7 @@ describe "ActiveMQ + Solr integration" do
   end
 
 
-  it "an object which has a body should be found by searching a word of the body" do
+  it "an object which has an HTML body should be found by searching a word of the body" do
     hit_count('body:Boddie').should == 0
     @cm.tcl %!
       obj root edit
@@ -66,6 +66,18 @@ describe "ActiveMQ + Solr integration" do
     !
 
     lambda { hit_count('body:Boddie') }.should eventually_be(1)
+  end
+
+
+  it "an object which has an HTML body should not be found by searching an HTML tag name" do
+    @cm.tcl %!
+      obj root create name htmlbody objClass document
+      obj withPath /htmlbody editedContent set blob "Das ist der <span>Boddie</span> des Objekts"
+      obj withPath /htmlbody release
+    !
+    lambda { hit_count('name:htmlbody') }.should eventually_be(1)
+
+    hit_count('body:span').should == 0
   end
 
 

@@ -31,10 +31,22 @@ class TestSolr
   <field name="valid_from" type="string" indexed="true" stored="false" required="false" />
   <field name="valid_until" type="string" indexed="true" stored="false" required="false" />
   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
-  <dynamicField name="*" type="text" indexed="true" stored="false" multiValued="true"/>
+  <dynamicField name="*" type="html" indexed="true" stored="false" multiValued="true"/>
 </fields>
 EOS
     contents.gsub!(/<fields>.*?<\/fields>/m, fields)
+
+    field_types = <<EOS
+  <fieldType name="html" class="solr.TextField">
+    <analyzer>
+      <charFilter class="solr.HTMLStripCharFilterFactory"/>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+    </analyzer>
+  </fieldType>
+EOS
+    contents.gsub!(/<\/types>/, field_types + "</types>")
+
     open(config, "w") do |f|
       f << contents
     end
