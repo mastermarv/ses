@@ -13,6 +13,13 @@ module Infopark
       def initialize
       end
 
+      def self.serve
+        indexer = new
+        indexer.start
+        at_exit { indexer.stop }
+        sleep
+      end
+
       def start
         mq_client.subscribe("/topic/#{RailsConnector::InfoparkBase.instance_name}/object-changes",
             :ack => "client",

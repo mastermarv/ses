@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+
+require 'rake'
+require 'net/http'
+
+RakeFileUtils.verbose_flag = false
+Rake.application.init($0)
+
+# config:
+ROOT = File.expand_path('../..',  __FILE__)
+MQ_DIR = "#{ROOT}/tmp/apache-activemq"
+SOLR_DIR = "#{ROOT}/tmp/apache-solr/example"
+
+
+
+def solr_ping
+  Net::HTTP.new("localhost", 8983).start do |http|
+    http.read_timeout = 5
+    response = http.get("/solr")
+  end
+  true
+rescue Exception => e
+  false
+end
+
+def mq_ping
+  %x(#{MQ_DIR}/bin/activemq-admin query) =~ /StompURL = \w+/
+end
+
+def ses_ping
+  %x(#{ROOT}/script/ses status) !~ /NOT/
+end
+
+
+namespace :mq do
+  task :start do
+    unless mq_ping
+      puts "Starting MQ"
+      mkdir_p "#{MQ_DIR}/logs"
+      sh "#{MQ_DIR}/bin/activemq-admin start >> #{MQ_DIR}/logs/server.log 2>&1 &"
+      sleep 1 until mq_ping
+    end
+    puts "MQ is up and running"
+  end
+
+  task :stop do
+    puts "Stopping MQ"
+    sh "#{MQ_DIR}/bin/activemq-admin stop >> #{MQ_DIR}/logs/server.log 2>&1"
+  end
+
+  task :status do
+    if mq_ping
+      puts "MQ is running"
+    else
+      puts "MQ is not running"
+    end
+  end
+end
+
+
+namespace :solr do
+  task :start do
+    unless solr_ping
+      puts "Starting Solr"
+      Dir.chdir(SOLR_DIR) do
+        mkdir_p "logs"
+        sh "java -DSTOP.PORT=8079 -DSTOP.KEY=solr -jar start.jar >> logs/server.log 2>&1 &"
+      end
+      sleep 1 until solr_ping
+    end
+    puts "Solr is up and running"
+  end
+
+  task :stop do
+    puts "Stopping Solr"
+    Dir.chdir(SOLR_DIR) do
+      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=solr -jar start.jar --stop >> logs/server.log 2>&1"
+    end
+  end
+
+  task :status do
+    if solr_ping
+      puts "Solr is running"
+    else
+      puts "Solr is not running"
+    end
+  end
+end
+
+
+namespace :ses do
+  task :start do
+    unless ses_ping
+      puts "Starting SES"
+      sh "#{ROOT}/script/ses start"
+      sleep 1 until ses_ping
+    end
+    puts "SES is up and running"
+  end
+
+  task :stop do
+    puts "Stopping SES"
+    sh "#{ROOT}/script/ses stop"
+  end
+
+  task :status do
+    sh "#{ROOT}/script/ses status"
+  end
+end
+
+
+desc "Start servers"
+apps = %w(mq solr ses)
+task :start => apps.map {|a| "#{a}:start"}
+task :stop => apps.reverse.map {|a| "#{a}:stop"}
+task :status => apps.map {|a| "#{a}:status"}
+
+task :default do
+  puts "Usage:"
+  system "#{$0} -T"
+end
+
+Rake.application.top_level
