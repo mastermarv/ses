@@ -109,10 +109,15 @@ namespace :ses do
 end
 
 
-desc "Start servers"
 apps = %w(mq solr ses)
+
+desc "Start servers"
 task :start => apps.map {|a| "#{a}:start"}
+
+desc "Stop servers"
 task :stop => apps.reverse.map {|a| "#{a}:stop"}
+
+desc "Print status"
 task :status => apps.map {|a| "#{a}:status"}
 
 task :default do
