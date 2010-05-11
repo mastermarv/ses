@@ -11,6 +11,8 @@ describe "ActiveMQ + Solr integration" do
   end
 
   before(:all) do
+    RailsConnector::Configuration.instance_name = 'seslucenmy'
+
     @cm = TestCM.new
     @cm.setup
 

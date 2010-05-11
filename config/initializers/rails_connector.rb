@@ -1,2 +1,2 @@
-RailsConnector::Configuration.instance_name = 'seslucenmy'
+RailsConnector::Configuration.instance_name = 'default'
 
