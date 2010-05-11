@@ -7,6 +7,7 @@ require 'fileutils'
 WD = File.dirname(File.dirname(__FILE__))
 FileUtils.mkdir_p "#{WD}/log"
 FileUtils.mkdir_p "#{WD}/tmp/pids"
+system "#{WD}/script/runner nil" # check runner environment
 
 class Ses < DaemonSpawn::Base
   def start(args)
@@ -19,4 +20,5 @@ end
 
 Ses.spawn!(:working_dir => WD,
     :log_file => "#{WD}/log/ses.log",
-    :pid_file => "#{WD}/tmp/pids/ses.pid")
+    :pid_file => "#{WD}/tmp/pids/ses.pid",
+    :singleton => true)
