@@ -5,7 +5,7 @@ describe "ActiveMQ + Solr integration" do
   def hit_count(q)
     filter_query = [
       "valid_from:[* TO #{Time.now.to_iso}]",
-      "valid_until:[#{Time.now.to_iso} TO *] OR (*:* -valid_until:[* TO *])"
+      "NOT valid_until:[* TO #{Time.now.to_iso}]"
     ]
     @solr_client.select(:q => q, :fq => filter_query)['response']['numFound']
   end
