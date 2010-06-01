@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'prawn'
+require 'base64'
 
 describe "ActiveMQ + Solr integration" do
 
@@ -162,6 +164,20 @@ describe "ActiveMQ + Solr integration" do
     "
 
     lambda { hit_count('name:valid_from_past_and_valid_until') }.should eventually_be(1)
+  end
+
+
+  it "should find text within a PDF document" do
+    pdf = Prawn::Document.new
+    pdf.text 'This is auniquepdfword in a PDF document'
+    blob64 = Base64.encode64(pdf.render)
+    @cm.tcl "
+      obj root create name pdf objClass generic
+      obj withPath /pdf editedContent set blob.base64 {#{blob64}}
+      obj withPath /pdf release
+    "
+
+    lambda { hit_count('body:auniquepdfword') }.should eventually_be(1)
   end
 
 end
