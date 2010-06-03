@@ -29,7 +29,7 @@ def mq_ping
 end
 
 def ses_ping
-  %x(#{ROOT}/script/ses status) !~ /NOT/
+  %x(#{ROOT}/script/ses status) =~ /is running/
 end
 
 
@@ -101,11 +101,15 @@ namespace :ses do
 
   task :stop do
     puts "Stopping SES"
-    sh "#{ROOT}/script/ses stop"
+    system "#{ROOT}/script/ses stop"
   end
 
   task :status do
-    sh "#{ROOT}/script/ses status"
+    if ses_ping
+      puts "SES is running"
+    else
+      puts "SES is not running"
+    end
   end
 end
 

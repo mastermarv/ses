@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'daemon-spawn'
+require 'daemon_spawn'
 require 'fileutils'
 
 WD = File.dirname(File.dirname(__FILE__))
@@ -19,6 +19,7 @@ class Ses < DaemonSpawn::Base
 end
 
 Ses.spawn!(:working_dir => WD,
+    :application => 'SES',
     :log_file => "#{WD}/log/ses.log",
     :pid_file => "#{WD}/tmp/pids/ses.pid",
     :singleton => true)
