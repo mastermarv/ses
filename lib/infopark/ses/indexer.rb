@@ -30,6 +30,8 @@ module Infopark
             mq_client.acknowledge(msg)
           rescue StandardError => e
             $stderr.puts "Unhandled exception in MQ subscriber block: #{e.inspect}"
+            infinity = 1.0/0
+            mq_client.unreceive(msg, :max_redeliveries => infinity)
           end
         end
       end

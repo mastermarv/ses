@@ -180,4 +180,21 @@ describe "ActiveMQ + Solr integration" do
     lambda { hit_count('body:auniquepdfword') }.should eventually_be(1)
   end
 
+
+  it "should retry indexing after an error" do
+    $stderr.stub!(:puts)
+    @ses_indexer.stub!(:fields_for).and_return do
+      @counter = (@counter or 0).next
+      raise "error" if @counter < 10
+      {
+        :id => 2001,
+        :name => 'ErrorMock',
+        :valid_from => '19750101000000'
+      }
+    end
+    @cm.tcl "obj withPath / set name errorTest"
+
+    lambda { hit_count('name:ErrorMock') }.should eventually_be(1)
+  end
+
 end
