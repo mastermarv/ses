@@ -1,5 +1,5 @@
 Infopark::SES::Indexer.index_fields do |obj|
-  if obj.released? # && obj.suppress_export == 0 && !obj.image?
+  if obj.released? # && !obj.suppress_export? && !obj.image?
     plain_body = Infopark::SES::Filter::text_via_solr_cell(obj) if obj.generic?
     {
       :id => obj.id,
