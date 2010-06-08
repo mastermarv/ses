@@ -3,3 +3,4 @@
 /tmp/**
 /config/local/*
 /config/license.xml
+/vendor/**
