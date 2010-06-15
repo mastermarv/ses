@@ -1,7 +1,7 @@
-
-gem_name_stomp = "stomp-1.1.5"
-$: << "/usr/lib/ruby/gems/1.8/gems/#{gem_name_stomp}/lib"
-$: << ENV['HOME'] + "/.gem/ruby/1.8/gems/#{gem_name_stomp}/lib"
+gem_name_stomp = "stomp-?.?.?"
+Dir["/usr/lib/ruby/gems/1.8/gems/#{gem_name_stomp}/lib"].each { |d| $: << d }
+Dir["/var/lib/ruby/gems/1.8/gems/#{gem_name_stomp}/lib"].each { |d| $: << d }
+Dir[ENV['HOME'] + "/.gem/ruby/1.8/gems/#{gem_name_stomp}/lib"].each { |d| $: << d }
 
 require 'stomp'
 
