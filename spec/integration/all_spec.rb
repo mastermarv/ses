@@ -181,6 +181,32 @@ describe "ActiveMQ + Solr integration" do
   end
 
 
+  it "should retry after a reset connection during indexing all" do
+    @ses_indexer.stop
+    @cm.tcl "
+      obj root create name econnreset objClass generic
+      obj withPath /econnreset editedContent set blob.base64 {JQ==}
+      obj withPath /econnreset release
+    "
+    proxy_rsolr = RSolr.connect
+    mock_rsolr = RSolr.connect
+    mock_rsolr.stub!(:request).and_return do |url, params, body|
+      if body == '%'
+        @counter = (@counter or 0).next
+        raise Errno::ECONNRESET if @counter < 2
+        {"" => "econnreset"}
+      else
+        proxy_rsolr.request(url, params, body)
+      end
+    end
+    RSolr.stub!(:connect).and_return mock_rsolr
+    @ses_indexer = Infopark::SES::Indexer.new
+    @ses_indexer.reindex_all
+
+    lambda { hit_count('body:econnreset') }.should eventually_be(1)
+  end
+
+
   it "should retry indexing after an error" do
     $stderr.stub!(:puts)
     @ses_indexer.stub!(:fields_for).and_return do

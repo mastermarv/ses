@@ -4,14 +4,26 @@ module Infopark
   module SES
     module Filter
 
-      # convert the object's body to plain text using Solr's ExtractingRequestHandler
-      def self.text_via_solr_cell(obj)
+      # Convert the object's body to plain text using Solr's ExtractingRequestHandler
+      # Options:
+      # <tt>:fallback</tt>:: The value returned if extraction fails (after retry). If unset the exception is thrown
+      # <tt>:attempts</tt>:: Overall attempts on errors. Default: <tt>2</tt> (retry once)
+      def self.text_via_solr_cell(obj, options = {})
         params = {
           'extractOnly' => true,
           'extractFormat' => 'text',
           'resource.name' => identifier(obj)
         }
-        RSolr.connect.request('/update/extract', params, obj.body)['']
+        attempts = options[:attempts] || 2
+        for attempt in 1..attempts do
+          begin
+            return RSolr.connect.request('/update/extract', params, obj.body)['']
+          rescue StandardError => error
+            ActiveRecord::Base.logger.debug "Error filtering obj #{obj.id}, #{obj.path}, attempt #{attempt}: #{error.inspect}"
+          end
+        end
+        return options[:fallback] if options.key?(:fallback)
+        raise error
       end
 
       # convert the object's body to HTML using the Verity input filter (IF)
