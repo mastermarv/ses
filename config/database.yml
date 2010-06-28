@@ -27,4 +27,5 @@ cms:
   database: test_ses_lucene
   username: test_ses_lucene
   password: test_ses_lucene
+  reconnect: true
   encoding: utf8
