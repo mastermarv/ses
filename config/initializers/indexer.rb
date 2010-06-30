@@ -11,3 +11,11 @@ Infopark::SES::Indexer.index_fields do |obj|
     }
   end
 end
+
+# Infopark::SES::Indexer.collections = {
+#   :default => 'http://127.0.0.1:8983/solr'
+# }
+
+# Infopark::SES::Indexer.collection_selection do |obj|
+#   :default
+# end
