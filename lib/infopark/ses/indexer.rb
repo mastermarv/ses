@@ -101,7 +101,7 @@ module Infopark
           collections = collections_for(obj)
           solr_clients.each do |collection, solr_client|
             if collections.include?(collection)
-              ActiveRecord::Base.logger.debug "indexing obj #{obj.id}: #{obj.path} (#{collection})"
+              ActiveRecord::Base.logger.info "SES: indexing obj #{obj.id}: #{obj.path} (#{collection})"
               solr_client.add(fields)
             end
           end
