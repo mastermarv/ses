@@ -118,22 +118,12 @@ ergänzt werden. Am Anfang der Datei config/deploy.rb einfügen:
   set :bundle_flags, "--deployment --quiet --local"
   require 'bundler/capistrano'
 
-In die Sektion "cms_preview" die Rolle :ses_indexer eintragen:
-
-  case stage
-  when "cms_preview"
-    role :web, "cms@cms.nue.cust"
-    role :app, "cms@cms.nue.cust"
-    role :db,  "cms@cms.nue.cust", :primary => true
-    role :ses_indexer, "cms@cms.nue.cust"
-    set :deploy_to, "/home/cms/#{application}/preview"
-    set :rails_env, "preview"
-  [...]
-
 In den Namespace :deploy zusätzlich den Task :restart_ses_indexer einfügen:
 
-  task :restart_ses_indexer, :roles => :ses_indexer do
-    run "cd #{current_path} && RAILS_ENV=#{rails_env} ./script/ses-indexer restart"
+  task :restart_ses_indexer, :roles => :app do
+    if stage == 'cms_preview'
+      run "cd #{current_path} && RAILS_ENV=#{rails_env} ./script/ses-indexer restart"
+    end
   end
 
 Und weiter unten:
