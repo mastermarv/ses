@@ -101,6 +101,24 @@ task :start do
 end
 
 
+namespace :start do
+  desc "Start the Apache Solr server process (multicore)"
+  task :multicore do
+    unless ping_solr
+      chdir(install_dir + "apache-solr/example") do
+        mkdir_p "logs"
+        sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -Dsolr.solr.home=multicore -jar start.jar >> logs/server.log 2>&1 &"
+      end
+      until ping_solr
+        puts "Waiting for Solr to start up"
+        sleep 1
+      end
+      puts "Solr is up and running"
+    end
+  end
+end
+
+
 # =====================
 # stop
 # =====================

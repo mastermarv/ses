@@ -153,6 +153,8 @@ für den Einsatz mit Fiona geeignet ist:
 Starten:
 
   bin/ses-apache-solr start
+  bzw.
+  bin/ses-apache-solr start:multicore
 
 Stoppen:
 
