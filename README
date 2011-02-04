@@ -136,7 +136,9 @@ Beim Deployment installiert Bundler mit der o.g. Option --deployment die Gems
 automatisch ins Capistrano-Projekt-Verzeichnis shared/bundle, also direkt neben
 releases, current usw. Damit werden Gems im User-Space projektbezogen verwaltet.
 
-  cap -S stage=preview deploy
+Deploy ins Preview-Environment:
+
+  cap deploy
 
 
 Manuell kann der Indexer-Daemon übrigens mit folgenden Kommandos gesteuert werden:
