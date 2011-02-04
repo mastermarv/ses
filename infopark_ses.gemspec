@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{Infopark SES Solr integration}
   s.description = %q{Infopark SES provides a daemon which receives object change notifications via Apache Active MQ and sends formatted indexing request to Solr}
 
-  s.files         = `git ls-files`.split("\n")
+  s.files         = `git ls-files`.split("\n").reject {|p| p =~ /^test_app/}
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
