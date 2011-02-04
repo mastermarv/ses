@@ -64,6 +64,7 @@ selbständig up-to-date. Alle Gems in vendor/cache können eingecheckt werden.
 Das wird sogar empfohlen, weil so das Deployment (mit Capistrano und Bundler)
 auch ohne Internet-Verbindung ausgeführt werden kann.
 
+
 Die Capistrano-Konfiguration für das Deployment mit Bundler kann folgendermaßen
 ergänzt werden. Am Anfang der Datei config/deploy.rb einfügen:
 
@@ -111,19 +112,19 @@ ausgepackte Verzeichnis, damit es einfach über ~/apache-activemq referenziert
 werden kann. Anschließend wird die neue Installation so konfiguriert, dass sie
 für den Einsatz mit Fiona geeignet ist:
 
-  bin/ses-apache-activemq install
+  bundle exec ses-apache-activemq install
 
 Starten:
 
-  bin/ses-apache-activemq start
+  bundle exec ses-apache-activemq start
 
 Stoppen:
 
-  bin/ses-apache-activemq stop
+  bundle exec ses-apache-activemq stop
 
 Status:
 
-  bin/ses-apache-activemq status
+  bundle exec ses-apache-activemq status
 
 
 
@@ -154,19 +155,19 @@ ausgepackte Verzeichnis, damit es einfach über ~/apache-solr referenziert
 werden kann. Anschließend wird die neue Installation so konfiguriert, dass sie
 für den Einsatz mit Fiona geeignet ist:
 
-  bin/ses-apache-solr install
+  bundle exec ses-apache-solr install
 
 Starten:
 
-  bin/ses-apache-solr start
+  bundle exec ses-apache-solr start
   bzw.
-  bin/ses-apache-solr start:multicore
+  bundle exec ses-apache-solr start:multicore
 
 Stoppen:
 
-  bin/ses-apache-solr stop
+  bundle exec ses-apache-solr stop
 
 Status:
 
-  bin/ses-apache-solr status
+  bundle exec ses-apache-solr status
 
