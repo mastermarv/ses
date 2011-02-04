@@ -39,10 +39,27 @@ module Infopark
           begin
             index(msg.body)
             mq_client.acknowledge(msg)
+
+          rescue ActiveRecord::StatementInvalid => e
+            ActiveRecord::Base.logger.error "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] [#{e.class}] #{e}"
+            unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.active?
+              begin
+                ActiveRecord::Base.logger.info "=> not connected, trying to reconnect..."
+                # a simple reconnect! does not work; need to clear all connections
+                # and then establish a new connection to make things work
+                ActiveRecord::Base.connection_handler.clear_all_connections!
+                db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
+                ActiveRecord::Base.establish_connection(db_yml['cms'])
+                mq_client.unreceive(msg, :max_redeliveries => 1.0/0)
+              rescue Exception => e
+                ActiveRecord::Base.logger.error "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] [#{e.class}] ** #{e}"
+              end
+            end
+
           rescue StandardError => e
-            $stderr.puts "Unhandled exception in MQ subscriber block: #{e.inspect}"
-            infinity = 1.0/0
-            mq_client.unreceive(msg, :max_redeliveries => infinity)
+            ActiveRecord::Base.logger.error "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] [#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
+            mq_client.unreceive(msg, :max_redeliveries => 1.0/0)
+            sleep 10
           end
         end
       end
