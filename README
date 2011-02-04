@@ -78,10 +78,11 @@ releases, current usw. Damit werden Gems im User-Space projektbezogen verwaltet.
 
 
 Infopark SES bringt beispielhaft Konfigurationsdateien mit, die in der
-Projekt-Rails-App benötigt werden.  Die generierten Dateien sind
-config/initializers/indexer.rb und config/initializers/filter.rb.
+Projekt-Rails-App benötigt werden:
 
   ./script/generate infopark_ses
+
+Die generierten Dateien werden im Folgende beschrieben.
 
 In index.rb wird festgelegt, welche Attribute eines Obj unter welchem Key im
 Solr-Index gespeichert werden sollen. Infopark::SES::Indexer.index_fields
@@ -91,6 +92,11 @@ konfiguriert werden.
 
 filter.rb enthält Konfigurationseinstellungen, um den Fiona-IF-Filter (.doc ->
 .html usw.) einzubinden.
+
+In der Projekt-Rails-App steht zum Reindizieren nun auch ein Rake-Task zur
+Verfügung:
+
+  rake index:all
 
 
 
