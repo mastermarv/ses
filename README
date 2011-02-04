@@ -89,8 +89,16 @@ script/ses-indexer ist das Start-Script für den Indexer-Daemon.
 In config/initializers/indexer.rb wird festgelegt, welche Attribute eines Obj
 unter welchem Key im Solr-Index gespeichert werden sollen.
 Infopark::SES::Indexer.index_fields liefert für ein Obj einen Hash mit der
-Abbildung von Index-Keys auf Obj-Attribut-Werte.
+Abbildung von Index-Keys auf Obj-Attribut-Werte. Liefert die Konfiguration nil,
+wird die Datei nicht indiziert bzw. deindiziert.
 Infopark::SES::Indexer.index_fields soll projektspezifisch konfiguriert werden.
+
+Alle in der index_fields-Konfiguration befüllten Felder müssen Solr per
+Konfiguration bekannt sein. Dazu in der Solr-Konfiguration
+~/apache-solr/example/solr/conf/schema.xml die Felder (field oder dynamicField)
+und deren Typen (fieldType) konfigurieren. Sollen sehr lange Texte vollständig
+indiziert werden, muss auch die maxFieldLength in
+~/apache-solr/example/solr/conf/solrconfig.xml erhöht werden.
 
 config/initializers/filter.rb enthält Konfigurationseinstellungen, um den
 Fiona-IF-Filter (.doc -> .html usw.) einzubinden.
@@ -206,6 +214,8 @@ Schließlich muss noch der CM neu gestartet werden, damit er den neuen Callback 
 
   ~/CMS-Fiona/instance/default/bin/rc.npsd restart CM
 
+Zur Problemanalyse ist der Apache ActiveMQ erreichbar unter: http://localhost:8161
+
 
 
 Installation von Solr
@@ -238,14 +248,32 @@ Status:
   bundle exec ses-apache-solr status
 
 
+Zur Problemanalyse ist der Apache Solr erreichbar unter: http://localhost:8983/solr
 
-Abschlussarbeiten
----------------------
 
-Zum Schluss wird der SES Indexer-Daemon restartet und dann alle CMS-Inhalte indiziert:
+
+Komplette Indizierung
+---------------------------
+
+Der SES Indexer-Daemon wird neu gestartet und dann alle CMS-Inhalte indiziert:
 
   ssh cms-host
   cd $project/preview/current
   RAILS_ENV=preview script/ses-indexer restart
   RAILS_ENV=preview rake index:all
 
+
+
+Integration der Suche in Rails
+--------------------------------
+
+Die Rails-Connector-Add-Ons ab Version 6.7.3 unterstützen den Lucene-basierten SES.
+
+Zur Aktivierung muss der SearchRequest umdefiniert werden:
+
+  class SearchRequest < RailsConnector::LuceneSearchRequest
+  end
+
+Das Interface bleibt gleich, bis auf folgende Ausnahmen: Querys werden in Solr
+Query Language anstatt VQL geschrieben. Die möglichen Optionen sind im
+LuceneSearchRequest dokumentiert.
