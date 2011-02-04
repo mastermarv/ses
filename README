@@ -1,7 +1,8 @@
 
 Infopark SES ist ein Ruby-Gem, welches zum Zweck der Indizierung von
-CMS-Inhalten vom CM Nachrichten über geänderte CMS-Objekte entgegen nimmt,
-Indizierungs- oder Deindizierungs-Anfragen erzeugt und diese an Solr sendet.
+CMS-Inhalten vom CM (über den Apache Active MQ) Nachrichten über geänderte
+CMS-Objekte entgegen nimmt, Indizierungs- oder Deindizierungs-Anfragen erzeugt
+und diese an Solr sendet.
 
 Das Infopark SES Ruby-Gem ergänzt eine bestehende Rails-App, typischerweise die
 Website-App eines konkreten Projektes. Die Rails-App muss bereits den Infopark
@@ -78,6 +79,15 @@ automatisch ins Capistrano-Projekt-Verzeichnis shared/bundle, also direkt neben
 releases, current usw. Damit werden Gems im User-Space projektbezogen verwaltet.
 
 
+SES Indexer
+-------------------
+
+Der eigentliche Kern des Infopark SES ist der Indexer. Er kann als dauernd
+laufender Daemon Verbindung zum Apache Active MQ aufnehmen, um sofort bei
+Änderungen an CMS-Inhalten benachrichtigt zu werden. Er fragt unter Benutzung
+des Rails Connectors Objekt-Attribute ab, und schickt diese aufbereitet an
+Apache Solr.
+
 Infopark SES bringt beispielhaft Konfigurationsdateien mit, die in der
 Projekt-Rails-App benötigt werden:
 
@@ -97,7 +107,16 @@ filter.rb enthält Konfigurationseinstellungen, um den Fiona-IF-Filter (.doc ->
 In der Projekt-Rails-App steht zum Reindizieren nun auch ein Rake-Task zur
 Verfügung:
 
-  rake index:all
+  RAILS_ENV=preview rake index:all
+
+
+Indexer starten:
+
+  RAILS_ENV=preview script/ses-indexer start
+
+Stoppen:
+
+  RAILS_ENV=preview script/ses-indexer stop
 
 
 
@@ -136,7 +155,7 @@ CM implementiert werden. Die Beispiel-Implementierung wird folgermaßen ins
 CM-Script-Verzeichnis kopiert und anschließend konfiguriert:
 
   cp cms-callback/* ~/CMS-Fiona/instance/default/script/cm/serverCmds/
-  gem install stomp --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/3rdparty/gems
+  gem install stomp --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
 
 Der Callback objectChangedCallback.tcl ruft das Ruby-Script
 publish_object_changes.rb auf, welches wiederum das im CMS-3rdparty

@@ -26,14 +26,13 @@ class TestCM
 
     system "#{instance}/bin/CM -restore #{base}/share/initDump"
     system "#{instance}/bin/CM -railsify"
-    system "gem install vendor/cache/stomp-*.gem --no-ri --no-rdoc --no-user-install --install-dir #{base}/3rdparty/gems"
+    system "gem install vendor/cache/stomp-*.gem --no-ri --no-rdoc --no-user-install --install-dir #{instance}/script/gems"
     FileUtils.cp "../cms-callback/objectChangedCallback.tcl", "#{instance}/script/cm/serverCmds/"
     FileUtils.cp "../cms-callback/publish_object_changes.rb", "#{instance}/script/cm/serverCmds/"
   end
 
   def teardown
     FileUtils.rm_rf instance
-    FileUtils.rm_rf "#{base}/3rdparty/gems"
   end
 
   def tcl(cmd)

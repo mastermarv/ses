@@ -7,6 +7,9 @@ class InfoparkSesGenerator < Rails::Generator::Base
 
       m.directory 'lib/tasks'
       m.file 'index.rake', 'lib/tasks/index.rake'
+
+      m.directory 'script'
+      m.file 'ses-indexer', 'script/ses-indexer'
     end
   end
 end

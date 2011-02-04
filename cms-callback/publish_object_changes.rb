@@ -1,6 +1,6 @@
-base_dir = ENV['NPS_BASE']
 instance = ENV['INSTANCE']
-$: << Dir["#{base_dir}/3rdparty/gems/gems/stomp-*/lib"].last or raise "No stomp installed"
+instance_dir = ENV['INSTANCE_DIR']
+$: << Dir["#{instance_dir}/script/gems/gems/stomp-*/lib"].last or raise "No stomp installed"
 
 require 'stomp'
 
