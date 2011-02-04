@@ -1,0 +1,146 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "rake"
+require "pathname"
+require 'net/http'
+
+Rake.application.init($0)
+
+solr_version = "1.4.1"
+solr_base_name = "apache-solr-#{solr_version}"
+solr_package = "#{solr_base_name}.tgz"
+url = "http://ftp.wayne.edu/apache/lucene/solr/#{solr_version}/#{solr_package}"
+install_dir = Pathname("~").expand_path
+
+# =====================
+# usage
+# =====================
+task :default do
+  puts "Usage:"
+  verbose(false) { sh "#{$0} -T" }
+end
+
+
+# =====================
+# install
+# =====================
+desc "Install Apache Solr #{solr_version}"
+task :install => [:extract_package, :configure]
+
+task :extract_package => "/tmp/#{solr_package}" do
+  chdir(install_dir) do
+    rm_rf FileList["apache-solr", solr_base_name]
+    sh %{tar xzf /tmp/#{solr_package}}
+    ln_s solr_base_name, "apache-solr"
+  end
+end
+
+file "/tmp/#{solr_package}" do
+  sh %{curl -o /tmp/#{solr_package} #{url}}
+end
+
+task :configure do
+  path = install_dir + "apache-solr/example/solr/conf/schema.xml"
+  puts "Patching #{path}"
+  config = path.read
+
+  fields = <<EOS
+<fields>
+  <field name="id" type="string" indexed="true" stored="true" required="true" />
+  <field name="name" type="string" indexed="true" stored="false" required="false" />
+  <field name="path" type="string" indexed="true" stored="false" required="false" />
+  <field name="valid_from" type="string" indexed="true" stored="false" required="false" />
+  <field name="valid_until" type="string" indexed="true" stored="false" required="false" />
+  <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+  <dynamicField name="*" type="html" indexed="true" stored="false" multiValued="true"/>
+</fields>
+EOS
+  config.gsub!(/<fields>.*?<\/fields>/m, fields)
+
+  field_types = <<EOS
+  <fieldType name="html" class="solr.TextField">
+    <analyzer>
+      <charFilter class="solr.HTMLStripCharFilterFactory"/>
+      <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+      <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+    </analyzer>
+  </fieldType>
+EOS
+  config.gsub!(/<\/types>/, field_types + "</types>")
+  open(path, "w") { |f| f << config }
+end
+
+
+# =====================
+# start
+# =====================
+def ping_solr
+  Net::HTTP.new("localhost", 8983).start do |http|
+    http.read_timeout = 5
+    response = http.get("/solr")
+  end
+  true
+rescue Exception => e
+  false
+end
+
+desc "Start the Apache Solr server process"
+task :start do
+  unless ping_solr
+    chdir(install_dir + "apache-solr/example") do
+      mkdir_p "logs"
+      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -jar start.jar >> logs/server.log 2>&1 &"
+    end
+    until ping_solr
+      puts "Waiting for Solr to start up"
+      sleep 1
+    end
+    puts "Solr is up and running"
+  end
+end
+
+
+namespace :start do
+  desc "Start the Apache Solr server process (multicore)"
+  task :multicore do
+    unless ping_solr
+      chdir(install_dir + "apache-solr/example") do
+        mkdir_p "logs"
+        sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -Dsolr.solr.home=multicore -jar start.jar >> logs/server.log 2>&1 &"
+      end
+      until ping_solr
+        puts "Waiting for Solr to start up"
+        sleep 1
+      end
+      puts "Solr is up and running"
+    end
+  end
+end
+
+
+# =====================
+# stop
+# =====================
+desc "Stop the Apache Solr server process"
+task :stop do
+  if ping_solr
+    chdir(install_dir + "apache-solr/example") do
+      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -jar start.jar --stop >> logs/server.log 2>&1"
+    end
+  end
+end
+
+# =====================
+# status
+# =====================
+desc "Status of the Apache Solr server process"
+task :status do
+  if ping_solr
+    puts "Solr is running"
+  else
+    puts "Solr is not running"
+  end
+end
+
+Rake.application.top_level

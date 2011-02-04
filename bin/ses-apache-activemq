@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "rake"
+require "pathname"
+
+Rake.application.init($0)
+
+mq_version = "5.4.2"
+mq_base_name = "apache-activemq-#{mq_version}"
+mq_package = "#{mq_base_name}-bin.tar.gz"
+url = "http://www.reverse.net/pub/apache/activemq/apache-activemq/#{mq_version}/#{mq_package}"
+$install_dir = Pathname("~").expand_path
+
+# =====================
+# usage
+# =====================
+task :default do
+  puts "Usage:"
+  verbose(false) { sh "#{$0} -T" }
+end
+
+
+# =====================
+# install
+# =====================
+desc "Install Apache Active MQ #{mq_version}"
+task :install => [:extract_package, :configure]
+
+task :extract_package => "/tmp/#{mq_package}" do
+  chdir($install_dir) do
+    rm_rf FileList["apache-activemq", mq_base_name]
+    sh %{tar xzf /tmp/#{mq_package}}
+    ln_s mq_base_name, "apache-activemq"
+  end
+end
+
+file "/tmp/#{mq_package}" do
+  sh %{curl -o /tmp/#{mq_package} #{url}}
+end
+
+task :configure do
+  path = $install_dir + "apache-activemq/conf/activemq.xml"
+  puts "Patching #{path}"
+  config = path.read
+  config.gsub!(%!<transportConnector name="openwire" uri="tcp://0.0.0.0:61616"/>!,
+                 %!<transportConnector name="openwire" uri="tcp://0.0.0.0:61616"/>
+                     <transportConnector name="stomp" uri="stomp://0.0.0.0:61613"/>!)
+  open(path, "w") { |f| f << config }
+end
+
+
+# =====================
+# start
+# =====================
+def ping_mq
+  %x(#{$install_dir}/apache-activemq/bin/activemq-admin query) =~ /StompURL = \w+/
+end
+
+desc "Start the Apache Active MQ server process"
+task :start do
+  unless ping_mq
+    sh "#{$install_dir}/apache-activemq/bin/activemq-admin start >/dev/null 2>&1 &"
+    until ping_mq
+      puts "Waiting for MQ to start up"
+      sleep 1
+    end
+    puts "MQ is up and running"
+  end
+end
+
+
+# =====================
+# stop
+# =====================
+desc "Stop the Apache Active MQ server process"
+task :stop do
+  if ping_mq
+    sh "#{$install_dir}/apache-activemq/bin/activemq-admin stop >/dev/null 2>&1"
+  end
+end
+
+
+# =====================
+# status
+# =====================
+desc "Status of the Apache Active MQ server process"
+task :status do
+  if ping_mq
+    puts "Active MQ is running"
+  else
+    puts "Active MQ is not running"
+  end
+end
+
+
+Rake.application.top_level
