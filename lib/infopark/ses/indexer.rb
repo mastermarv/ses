@@ -85,11 +85,13 @@ module Infopark
         collections = obj && collections_for(obj)
 
         solr_clients.each do |collection, solr_client|
-          if fields and collections.include?(collection)
+          if fields && collections.include?(collection)
+            ActiveRecord::Base.logger.info "SES: indexing obj #{obj.id}: #{obj.path} (collection: #{collection})"
             # FIXED in rsolr master, gem not yet released:
             #solr_client.add(fields, {:commitWithin => 1.0})
             solr_client.add(fields)
           else
+            ActiveRecord::Base.logger.info "SES: deleting obj #{obj_id} (collection: #{collection})"
             solr_client.delete_by_id(obj_id)
           end
           solr_client.commit
@@ -101,7 +103,7 @@ module Infopark
           collections = collections_for(obj)
           solr_clients.each do |collection, solr_client|
             if collections.include?(collection)
-              ActiveRecord::Base.logger.info "SES: indexing obj #{obj.id}: #{obj.path} (#{collection})"
+              ActiveRecord::Base.logger.info "SES: reindexing obj #{obj.id}: #{obj.path} (collection: #{collection})"
               solr_client.add(fields)
             end
           end
