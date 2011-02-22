@@ -37,14 +37,15 @@ module Infopark
             "activemq.prefetchSize" => 1,
             "activemq.subscriptionName" => "ses-lucene") do |msg|
           begin
+            log :info, "Received message from MQ: #{msg.body}"
             index(msg.body)
             mq_client.acknowledge(msg)
 
           rescue ActiveRecord::StatementInvalid => e
-            ActiveRecord::Base.logger.error "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] [#{e.class}] #{e}"
+            log :error, "[#{e.class}] #{e}"
             unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.active?
               begin
-                ActiveRecord::Base.logger.info "=> not connected, trying to reconnect..."
+                log :info, "Detected lost connection. Trying to reconnect..."
                 # a simple reconnect! does not work; need to clear all connections
                 # and then establish a new connection to make things work
                 ActiveRecord::Base.connection_handler.clear_all_connections!
@@ -52,12 +53,12 @@ module Infopark
                 ActiveRecord::Base.establish_connection(db_yml['cms'])
                 mq_client.unreceive(msg, :max_redeliveries => 1.0/0)
               rescue Exception => e
-                ActiveRecord::Base.logger.error "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] [#{e.class}] ** #{e}"
+                log :error, "[#{e.class}] ** #{e}"
               end
             end
 
           rescue StandardError => e
-            ActiveRecord::Base.logger.error "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] [#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
+            log :error, "[#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
             mq_client.unreceive(msg, :max_redeliveries => 1.0/0)
             sleep 10
           end
@@ -97,18 +98,18 @@ module Infopark
 
       def index(obj_id)
         solr_clients = rsolr_connect
-        obj = obj_for(obj_id)
+        obj = Obj.find_by_obj_id(obj_id)
         fields = obj && fields_for(obj)
         collections = obj && collections_for(obj)
 
         solr_clients.each do |collection, solr_client|
           if fields && collections.include?(collection)
-            ActiveRecord::Base.logger.info "SES: indexing obj #{obj.id}: #{obj.path} (collection: #{collection})"
+            log :info, "Indexing obj #{obj.id} (#{obj.path}) into collection #{collection}"
             # FIXED in rsolr master, gem not yet released:
             #solr_client.add(fields, {:commitWithin => 1.0})
             solr_client.add(fields)
           else
-            ActiveRecord::Base.logger.info "SES: deleting obj #{obj_id} (collection: #{collection})"
+            log :info, "Deleting obj #{obj_id} from collection #{collection}"
             solr_client.delete_by_id(obj_id)
           end
           solr_client.commit
@@ -120,17 +121,11 @@ module Infopark
           collections = collections_for(obj)
           solr_clients.each do |collection, solr_client|
             if collections.include?(collection)
-              ActiveRecord::Base.logger.info "SES: reindexing obj #{obj.id}: #{obj.path} (collection: #{collection})"
+              log :info, "Reindexing obj #{obj.id}: #{obj.path} (collection: #{collection})"
               solr_client.add(fields)
             end
           end
         end
-      end
-
-      def obj_for(obj_id)
-        Obj.find(obj_id)
-      rescue ::ActiveRecord::RecordNotFound
-        nil
       end
 
       def fields_for(obj)
@@ -158,6 +153,11 @@ module Infopark
             }
           )
         end
+      end
+
+      # Log messages appear in log/ses-indexer.log
+      def log(severity, msg)
+        puts "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.to_s.upcase} #{msg}"
       end
 
     end
