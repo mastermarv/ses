@@ -1,7 +1,7 @@
 source :rubygems
 
-gem "rails", "2.3.10"
-gem "infopark_rails_connector", "6.7.3.beta.223.62f1795"
+gem "rails", "2.3.11"
+gem "infopark_rails_connector"
 gem "infopark_ses", :path => ".."
 gem "sqlite3"
 gem "mysql"
