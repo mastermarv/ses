@@ -2,9 +2,9 @@ class TestSolrMulticore
 
   def setup
     system "../bin/ses-apache-solr install"
-    system "rsync -a ~/apache-solr/example/solr/conf/ ~/apache-solr/example/multicore/core0/conf/"
-    system "rsync -a ~/apache-solr/example/solr/conf/ ~/apache-solr/example/multicore/core1/conf/"
-    system "../bin/ses-apache-solr start:multicore"
+    system "../bin/ses-apache-solr create_core CORE=core0"
+    system "../bin/ses-apache-solr create_core CORE=core1"
+    system "../bin/ses-apache-solr start"
   end
 
 

@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    infopark_ses (6.7.3)
+    infopark_ses (6.7.3.1)
       activerecord (~> 2.3.10)
       daemon-spawn
       infopark_rails_connector

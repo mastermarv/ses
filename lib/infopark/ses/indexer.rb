@@ -133,7 +133,7 @@ module Infopark
       end
 
       def collections_for(obj)
-        [*@@collection_selection_callback.call(obj)]
+        Array(@@collection_selection_callback.call(obj))
       end
 
       def mq_client

@@ -12,10 +12,15 @@ Infopark::SES::Indexer.index_fields do |obj|
   end
 end
 
-# Infopark::SES::Indexer.collections = {
-#   :default => 'http://127.0.0.1:8983/solr'
-# }
 
+# Multicore configuration:
+
+# Infopark::SES::Indexer.collections = {
+#   "de" => 'http://127.0.0.1:8983/solr/de',
+#   "en" => 'http://127.0.0.1:8983/solr/en',
+# }
+#
 # Infopark::SES::Indexer.collection_selection do |obj|
-#   :default
+#   language_path_component = obj.path.split("/", 3)[1]
+#   [language_path_component] & %w(de en)
 # end

@@ -226,8 +226,6 @@ für den Einsatz mit Fiona geeignet ist:
 Starten:
 
   bundle exec ses-apache-solr start
-  bzw.
-  bundle exec ses-apache-solr start:multicore
 
 Stoppen:
 
@@ -238,7 +236,27 @@ Status:
   bundle exec ses-apache-solr status
 
 
-Zur Problemanalyse ist der Apache Solr erreichbar unter: http://localhost:8983/solr
+Zur Problemanalyse ist der Apache Solr erreichbar unter:
+http://localhost:8983/solr/admin bzw. http://localhost:8983/solr/de/admin bei
+Verwendung von mehreren Cores (aka. Collections). Im letzteren Fall ist der
+URL-Bestandteil "de" der Name des Cores.
+
+
+Konfiguration von Solr für Multicore
+-------------------------------------
+
+
+Folgendes Beispiel erzeugt 2 Cores: "de" und "en".
+
+  bundle exec ses-apache-solr create_core CORE=de
+  bundle exec ses-apache-solr create_core CORE=en
+
+Die oben erwähnte Datei config/initializers/indexer.rb enthält bereits
+auskommentiert die Konfiguration für die Cores "de" und "en". Diese
+Konfiguration muss nur einkommentiert werden. Die collection_selection geht
+beispielhaft davon aus, dass der Core an der ersten Pfadkomponente entschieden
+wird, d. h.  /de/about wird in "de" indiziert, /en/about in "en".
+
 
 
 

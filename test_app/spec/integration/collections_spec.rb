@@ -31,7 +31,7 @@ describe "ActiveMQ + Solr multicore integration" do
       case obj.name
         when 'core_0' then :c0
         when 'core_1' then :c1
-        when 'no_core' then []
+        when 'no_core' then nil
         else [:c0, :c1]
       end
     end
