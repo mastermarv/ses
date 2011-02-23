@@ -8,6 +8,7 @@ Infopark::SES::Indexer.index_fields do |obj|
       :body => plain_body || obj.body,
       :valid_from => obj.valid_from.to_iso,
       :valid_until => obj.valid_until.try(:to_iso),
+      :title => obj[:title],
     }
   end
 end

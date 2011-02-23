@@ -55,6 +55,10 @@ task :configure do
   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
   <dynamicField name="*" type="html" indexed="true" stored="false" multiValued="true"/>
 </fields>
+<copyField source="body" dest="text"/>
+<copyField source="title" dest="text"/>
+<copyField source="name" dest="text"/>
+<copyField source="path" dest="text"/>
 EOS
   config.gsub!(/<fields>.*?<\/fields>/m, fields)
 
