@@ -141,10 +141,10 @@ Deploy ins Preview-Environment:
 
 Manuell kann der Indexer-Daemon übrigens mit folgenden Kommandos gesteuert werden:
 
-  RAILS_ENV=preview script/ses-indexer start
-  RAILS_ENV=preview script/ses-indexer stop
-  RAILS_ENV=preview script/ses-indexer restart
-  RAILS_ENV=preview script/ses-indexer status
+  RAILS_ENV=production script/ses-indexer start
+  RAILS_ENV=production script/ses-indexer stop
+  RAILS_ENV=production script/ses-indexer restart
+  RAILS_ENV=production script/ses-indexer status
 
 
 Beispiel Flughafen Nürnberg: https://git.infopark/gitweb/?p=nue.git;a=blob;f=config/deploy.rb
@@ -267,8 +267,8 @@ Der SES Indexer-Daemon wird neu gestartet und dann alle CMS-Inhalte indiziert:
 
   ssh cms-host
   cd $project/preview/current
-  RAILS_ENV=preview script/ses-indexer restart
-  RAILS_ENV=preview rake index:all
+  RAILS_ENV=production script/ses-indexer restart
+  RAILS_ENV=production rake index:all
 
 
 
