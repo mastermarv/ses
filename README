@@ -24,15 +24,22 @@ aufbereitet an Apache Solr.
 Gem testen
 ==============
 
-Es wird eine Fiona-Entwicklungsumgebung in ../nps vorausgesetzt, die auch
-bereits gebaut sein muss. Die Tests des Infopark SES Gems werden mit
+Es wird eine Fiona-6.7-Entwicklungsumgebung in ../fiona vorausgesetzt, die auch
+bereits gebaut sein muss:
+
+  git clone -b 6.7-maint git@github.com:infopark/fiona.git
+  cd fiona
+  git submodule update --init --recursive
+  ln -s ../licenses/infopark-internal-restricted-license.xml config/license.xml
+  rake build
+
+
+Die Tests des Infopark SES Gems werden mit
 
   rake test
 
 ausgeführt. Die Tests sind vollständige Integrationstests. Sie liegen in
 test_app. Die von der test_app verwendeten Gems liegen in vendor/cache.
-
-Die test_app kann als Vorlage für ein Rails-Projekt dienen.
 
 
 
@@ -48,7 +55,6 @@ Installation
 
 Einbindung des Infopark SES Gem in die Rails-App
 ------------------------------------------------
-(Anleitung zur Konfiguration einer Rails-2.3-App mit Bundler: <http://gembundler.com/rails23.html>)
 
 Gemfile:
 
@@ -60,14 +66,7 @@ Infopark SES neben den Infopark Rails Connector und die anderen Gems in vendor/c
 
 Gems installieren:
 
-  bundle --path ~/.gem
-
-Bundler installiert mit diesem Kommando alle im Gemfile referenzierten Gems und
-deren Abhängigkeiten in ~/.gem. Ohne die Option --path würden die Gems im
-System-Ruby-Gem-Verzeichnis installiert. Es ist empfehlenswert, Gems
-grundsätzlich im User-Space zu installieren. Die aktuelle Version von Bundler
-(1.0.10) beachtet die Einstellungen in ~/.gemrc jedoch nicht, weswegen --path
-explizit angegeben werden muss.
+  bundle
 
 Bundler lädt notwendige Gems bei Bedarf von rubygems.org herunter. Alle
 Gem-Dateien werden, bevor sie installiert werden, automatisch in vendor/cache
@@ -79,8 +78,7 @@ auch ohne Internet-Verbindung ausgeführt werden kann.
 Infopark SES bringt beispielhaft Konfigurationsdateien mit, die in der
 Projekt-Rails-App benötigt werden:
 
-  ./script/generate infopark_ses
-  chmod +x script/ses-indexer
+  rails g ses:install
 
 Ein paar dieser generierten Dateien werden im Folgende beschrieben:
 
@@ -147,7 +145,8 @@ Manuell kann der Indexer-Daemon übrigens mit folgenden Kommandos gesteuert werd
   RAILS_ENV=production script/ses-indexer status
 
 
-Beispiel Flughafen Nürnberg: https://git.infopark/gitweb/?p=nue.git;a=blob;f=config/deploy.rb
+Beispiel Flughafen Nürnberg:
+  https://github.com/infopark-customers/airport-nuernberg/blob/master/config/deploy.rb
 
 
 Nach dem Deploy sollte zwar der Indexer-Daemon ses-indexer laufen, jedoch hat

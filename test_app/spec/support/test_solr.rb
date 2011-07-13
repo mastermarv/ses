@@ -7,7 +7,7 @@ class TestSolr
 
 
   def teardown
-    system "../bin/ses-apache-solr stop"
+    system "../bin/ses-apache-solr stop; sleep 10; killall -9 java; true"
   end
 
 end

@@ -17,10 +17,10 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency "activerecord", "~> 2.3.10"
+  s.add_dependency "activerecord", "~> 3.0.7"
   s.add_dependency "infopark_rails_connector"
   s.add_dependency "stomp"
-  s.add_dependency "rsolr"
+  s.add_dependency "rsolr", "1.0.0"
   s.add_dependency "daemon-spawn"
   s.add_dependency "ruby-progressbar"
 end
