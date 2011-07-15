@@ -7,10 +7,10 @@ require 'net/http'
 
 Rake.application.init($0)
 
-solr_version = "1.4.1"
+solr_version = "3.3.0"
 solr_base_name = "apache-solr-#{solr_version}"
 solr_package = "#{solr_base_name}.tgz"
-url = "http://ftp.wayne.edu/apache/lucene/solr/#{solr_version}/#{solr_package}"
+url = "http://apache.openmirror.de/lucene/solr/#{solr_version}/#{solr_package}"
 install_dir = Pathname("~").expand_path
 
 # =====================
@@ -52,7 +52,7 @@ task :configure do
   <field name="path" type="string" indexed="true" stored="false" required="false" />
   <field name="valid_from" type="string" indexed="true" stored="false" required="false" />
   <field name="valid_until" type="string" indexed="true" stored="false" required="false" />
-  <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+  <field name="text" type="html" indexed="true" stored="false" multiValued="true"/>
   <dynamicField name="*" type="html" indexed="true" stored="false" multiValued="true"/>
 </fields>
 <copyField source="body" dest="text"/>

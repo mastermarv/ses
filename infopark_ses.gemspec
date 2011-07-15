@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activerecord", "~> 3.0.7"
   s.add_dependency "infopark_rails_connector"
   s.add_dependency "stomp"
-  s.add_dependency "rsolr", "1.0.0"
+  s.add_dependency "rsolr"
   s.add_dependency "daemon-spawn"
   s.add_dependency "ruby-progressbar"
 end
