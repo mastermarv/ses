@@ -10,18 +10,19 @@ namespace :index do
   namespace :worker do
     desc "Start the worker"
     task :start => :environment do
-      queue = Infopark::SES::Indexer.queue
-      unless File.exist?("tmp/pids/resque_worker_#{queue}.pid")
-        sh "nohup bundle exec rake environment resque:work RAILS_ENV=production QUEUE=#{queue} VERBOSE=1 PIDFILE=tmp/pids/resque_worker_#{queue}.pid >> log/resque_worker_#{queue}.log 2>&1 &"
+      if worker_running?
+        puts "Worker is already running"
+      else
+        sh "nohup bundle exec rake environment resque:work RAILS_ENV=production QUEUE=#{Infopark::SES::Indexer.queue} VERBOSE=1 PIDFILE=#{worker_pid_file} >> log/resque_worker_#{Infopark::SES::Indexer.queue}.log 2>&1 &"
       end
     end
 
     desc "Stop the worker"
     task :stop => :environment do
-      queue = Infopark::SES::Indexer.queue
-      if File.exist?("tmp/pids/resque_worker_#{queue}.pid")
-        pid = File.read("tmp/pids/resque_worker_#{queue}.pid")
-        sh "kill -9 #{pid} && rm -f tmp/pids/resque_worker_#{queue}.pid; true"
+      if worker_running?
+        sh "kill -9 #{worker_pid} && rm -f #{worker_pid_file}; true"
+      else
+        puts "Worker was not running"
       end
     end
 
@@ -29,6 +30,31 @@ namespace :index do
     task :restart do
       Rake::Task["index:worker:stop"].invoke
       Rake::Task["index:worker:start"].invoke
+    end
+
+    desc "Reports the status of the worker"
+    task :status => :environment do
+      if worker_running?
+        puts "Worker is running"
+      else
+        puts "Worker is not running"
+      end
+    end
+
+    def worker_running?
+      worker_pid && Process.getpgid(worker_pid)
+    rescue Errno::ESRCH
+      false
+    end
+
+    def worker_pid
+      worker_pid_file.read.to_i
+    rescue Errno::ENOENT
+      nil
+    end
+
+    def worker_pid_file
+      Rails.root + "tmp/pids/resque_worker_#{Infopark::SES::Indexer.queue}.pid"
     end
   end
 end
