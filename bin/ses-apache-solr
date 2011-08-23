@@ -41,85 +41,17 @@ file "/tmp/#{solr_package}" do
 end
 
 task :configure do
-  path = install_dir + "apache-solr/example/solr/conf/schema.xml"
-  puts "Patching #{path}"
-  config = path.read
-
-  fields = <<EOS
-<fields>
-  <field name="id" type="string" indexed="true" stored="true" required="true" />
-  <field name="name" type="string" indexed="true" stored="false" required="false" />
-  <field name="path" type="string" indexed="true" stored="false" required="false" />
-  <field name="valid_from" type="string" indexed="true" stored="false" required="false" />
-  <field name="valid_until" type="string" indexed="true" stored="false" required="false" />
-  <field name="text" type="html" indexed="true" stored="false" multiValued="true"/>
-  <dynamicField name="*" type="html" indexed="true" stored="false" multiValued="true"/>
-</fields>
-<copyField source="body" dest="text"/>
-<copyField source="title" dest="text"/>
-<copyField source="name" dest="text"/>
-<copyField source="path" dest="text"/>
-EOS
-  config.gsub!(/<fields>.*?<\/fields>/m, fields)
-
-  field_types = <<EOS
-  <fieldType name="html" class="solr.TextField" positionIncrementGap="100">
-    <analyzer type="index">
-      <charFilter class="solr.HTMLStripCharFilterFactory"/>
-      <tokenizer class="solr.StandardTokenizerFactory"/>
-      <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
-      <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
-      <!-- in this example, we will only use synonyms at query time
-      <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
-      -->
-      <filter class="solr.LowerCaseFilterFactory"/>
-    </analyzer>
-    <analyzer type="query">
-      <charFilter class="solr.HTMLStripCharFilterFactory"/>
-      <tokenizer class="solr.StandardTokenizerFactory"/>
-      <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
-      <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
-      <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-      <filter class="solr.LowerCaseFilterFactory"/>
-    </analyzer>
-  </fieldType>
-EOS
-  config.gsub!(/<\/types>/, field_types + "</types>")
-  open(path, "w") { |f| f << config }
+  sh "rsync -a --exclude=.gitignore #{gem_dir}/solr-webapp/cms #{install_dir}/apache-solr/"
 end
 
 
-desc "Create a core (aka. collection). Param CORE=name"
-task :create_core do
-  core_name = ENV['CORE'] or raise "Missing CORE name"
-  solr_dir = install_dir + "apache-solr/example/solr"
-  orig_solr_dir = install_dir + "apache-solr/example/solr.orig"
-
-  # Assume the multicore feature is not yet configured at all
-  unless File.directory?(orig_solr_dir)
-    mv(solr_dir, orig_solr_dir)
-    mkdir(solr_dir)
-    solr_xml = %(\
-      <?xml version="1.0" encoding="UTF-8" ?>
-      <solr persistent="false">
-        <cores adminPath="/admin/cores">
-        </cores>
-      </solr>
-      ).gsub(/^ {6}/, '')
-    open(solr_dir + "solr.xml", "w") { |f| f << solr_xml }
-  end
-
-  core_dir = solr_dir + core_name
-  mkdir_p(core_dir + "conf")
-  sh "rsync -a --exclude=solrconfig.xml #{orig_solr_dir + "conf"}/ #{core_dir}/conf/"
-  cp(install_dir + "apache-solr/example/multicore/core0/conf/solrconfig.xml", core_dir + "conf")
-
-  solr_xml = (solr_dir + "solr.xml").read
-  core_config = %(  <core name="#{core_name}" instanceDir="#{core_name}" />\n  )
-  solr_xml.gsub!(/<\/cores>/, core_config + "</cores>")
-  open(solr_dir + "solr.xml", "w") { |f| f << solr_xml }
+task :gem_dir do
+  puts gem_dir
 end
 
+def gem_dir
+  File.dirname(__FILE__) + '/..'
+end
 
 # =====================
 # start
@@ -138,8 +70,7 @@ desc "Start the Apache Solr server process"
 task :start do
   unless ping_solr
     chdir(install_dir + "apache-solr/example") do
-      mkdir_p "logs"
-      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -jar start.jar >> logs/server.log 2>&1 &"
+      sh "java -Xms512M -Xmx2048M -DSTOP.PORT=8079 -DSTOP.KEY=stop -Dsolr.solr.home=#{install_dir}/apache-solr/cms -jar start.jar >> #{install_dir}/apache-solr/cms/logs/server.log 2>&1 &"
     end
     until ping_solr
       puts "Waiting for Solr to start up"
@@ -157,7 +88,7 @@ desc "Stop the Apache Solr server process"
 task :stop do
   if ping_solr
     chdir(install_dir + "apache-solr/example") do
-      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -jar start.jar --stop >> logs/server.log 2>&1"
+      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -Dsolr.solr.home=#{install_dir}/apache-solr/cms -jar start.jar --stop >> #{install_dir}/apache-solr/cms/logs/server.log 2>&1"
     end
   end
 end

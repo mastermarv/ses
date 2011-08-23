@@ -2,22 +2,21 @@ Beschreibung
 ===================
 
 Infopark SES ist ein Ruby-Gem, welches zum Zweck der Indizierung von
-CMS-Inhalten vom CM (über den Apache Active MQ) Nachrichten über geänderte
-CMS-Objekte entgegen nimmt, Indizierungs- oder Deindizierungs-Anfragen erzeugt
-und diese an Solr sendet.
+CMS-Inhalten vom CM Nachrichten über geänderte CMS-Objekte entgegen nimmt,
+Indizierungs- oder Deindizierungs-Anfragen erzeugt und diese an Solr sendet.
 
 Das Infopark SES Ruby-Gem ergänzt eine bestehende Rails-App, typischerweise die
 Website-App eines konkreten Projektes. Die Rails-App muss bereits den Infopark
 Rails Connector einsetzen. Infopark SES setzt eine Rails Connector-Anbindung
 zur CMS-Datenbank voraus.
 
-Infopark SES besteht aus dem SES Indexer-Daemon, einem Installer für Apache
-Active MQ, einem Installer für Apache Solr und der Logik zu Verdrahten dieser
-Software-Komponenten. Der eigentliche Kern des Infopark SES ist der Indexer.
-Er kann als dauernd laufender Daemon Verbindung zum Apache Active MQ aufnehmen,
-um sofort bei Änderungen an CMS-Inhalten benachrichtigt zu werden. Er fragt
-unter Benutzung des Rails Connectors Objekt-Attribute ab, und schickt diese
-aufbereitet an Apache Solr.
+Infopark SES besteht aus dem SES Indexer-Resque-Worker, einem Installer für
+Apache Solr und der Logik zu Verdrahten dieser Software-Komponenten. Der
+eigentliche Kern des Infopark SES ist der Indexer.  Er fragt unter Benutzung
+des Rails Connectors Objekt-Attribute ab, und schickt diese aufbereitet an
+Apache Solr.
+
+Der Installer für Redis (ist Voraussetzung für Resque) ist nicht enthalten.
 
 
 
@@ -82,6 +81,7 @@ Projekt-Rails-App benötigt werden:
 
 Ein paar dieser generierten Dateien werden im Folgende beschrieben:
 
+# TODO
 script/ses-indexer ist das Start-Script für den Indexer-Daemon.
 
 In config/initializers/indexer.rb wird festgelegt, welche Attribute eines Obj
@@ -90,13 +90,6 @@ Infopark::SES::Indexer.index_fields liefert für ein Obj einen Hash mit der
 Abbildung von Index-Keys auf Obj-Attribut-Werte. Liefert die Konfiguration nil,
 wird die Datei nicht indiziert bzw. deindiziert.
 Infopark::SES::Indexer.index_fields soll projektspezifisch konfiguriert werden.
-
-Alle in der index_fields-Konfiguration befüllten Felder müssen Solr per
-Konfiguration bekannt sein. Dazu in der Solr-Konfiguration
-~/apache-solr/example/solr/conf/schema.xml die Felder (field oder dynamicField)
-und deren Typen (fieldType) konfigurieren. Sollen sehr lange Texte vollständig
-indiziert werden, muss auch die maxFieldLength in
-~/apache-solr/example/solr/conf/solrconfig.xml erhöht werden.
 
 config/initializers/filter.rb enthält Konfigurationseinstellungen, um den
 Fiona-IF-Filter (.doc -> .html usw.) einzubinden.
@@ -120,6 +113,7 @@ In den Namespace :deploy zusätzlich den Task :restart_ses_indexer einfügen:
 
   task :restart_ses_indexer, :roles => :app do
     if stage == 'cms_preview'
+    # TODO
       run "cd #{current_path} && RAILS_ENV=#{rails_env} ./script/ses-indexer restart"
     end
   end
@@ -137,6 +131,7 @@ Deploy ins Preview-Environment:
   cap deploy
 
 
+# TODO
 Manuell kann der Indexer-Daemon übrigens mit folgenden Kommandos gesteuert werden:
 
   RAILS_ENV=production script/ses-indexer start
@@ -145,10 +140,7 @@ Manuell kann der Indexer-Daemon übrigens mit folgenden Kommandos gesteuert werd
   RAILS_ENV=production script/ses-indexer status
 
 
-Beispiel Flughafen Nürnberg:
-  https://github.com/infopark-customers/airport-nuernberg/blob/master/config/deploy.rb
-
-
+# TODO
 Nach dem Deploy sollte zwar der Indexer-Daemon ses-indexer laufen, jedoch hat
 er zum Apache Active MQ und zum Apache Solr noch keine Verbindung. Deswegen
 werden im Folgenden diese Komponenten installiert:
@@ -156,54 +148,24 @@ werden im Folgenden diese Komponenten installiert:
 
 
 
-Installation von Apache Active MQ jeweils auf CMS-Server
+Anbindung von Resque auf dem CMS-Server
 ------------------------------------------------------------------------
 
-(Homepage: <http://activemq.apache.org/>)
-
-Der Java-Server Apache Active MQ wird mit curl heruntergeladen und in $HOME
-installiert. Per Konvention zeigt ein Symlink namens apache-activemq auf das
-ausgepackte Verzeichnis, damit es einfach über ~/apache-activemq referenziert
-werden kann. Anschließend wird die neue Installation so konfiguriert, dass sie
-für den Einsatz mit Fiona geeignet ist:
-
-  ssh cms-host
-  cd $project/preview/current
-  bundle exec ses-apache-activemq install
-
-Starten:
-
-  bundle exec ses-apache-activemq start
-
-Stoppen:
-
-  bundle exec ses-apache-activemq stop
-
-Status:
-
-  bundle exec ses-apache-activemq status
-
-
-
-Der Apache Active MQ muss noch so in Fiona integriert werden, dass bei
-Änderungen an Objekten vom CM entsprechende Nachrichten an den Apache Active MQ
-geschickt werden. In Fiona existiert bereits die Schnittstelle, um die
-Tcl-Prozedur objectChangedCallback aufzurufen. Diese Prozedur muss nur noch im
-CM implementiert werden. Die Beispiel-Implementierung wird folgermaßen ins
-CM-Script-Verzeichnis kopiert und anschließend konfiguriert:
+Bei Änderungen an Objekten werden vom CM entsprechende Indizierungs-Jobs in die
+Job-Queue von Resque gestellt werden. In Fiona existiert bereits die
+Schnittstelle, um die Tcl-Prozedur objectChangedCallback aufzurufen. Diese
+Prozedur muss nur noch im CM implementiert werden. Die Beispiel-Implementierung
+wird folgermaßen ins CM-Script-Verzeichnis kopiert und anschließend
+konfiguriert:
 
   cp $(bundle show infopark_ses)/cms-callback/* ~/CMS-Fiona/instance/default/script/cm/serverCmds/
+  # TODO
   gem install stomp --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
-
-Der Callback objectChangedCallback.tcl ruft das Ruby-Script
-publish_object_changes.rb auf, welches wiederum das im CMS-3rdparty
-installierte Ruby-Gem stomp benutzt, um mit Apache Active MQ zu kommunizieren.
 
 Schließlich muss noch der CM neu gestartet werden, damit er den neuen Callback nutzt:
 
   ~/CMS-Fiona/instance/default/bin/rc.npsd restart CM
 
-Zur Problemanalyse ist der Apache ActiveMQ erreichbar unter: http://localhost:8161
 
 
 
@@ -241,23 +203,6 @@ Verwendung von mehreren Cores (aka. Collections). Im letzteren Fall ist der
 URL-Bestandteil "de" der Name des Cores.
 
 
-Konfiguration von Solr für Multicore
--------------------------------------
-
-
-Folgendes Beispiel erzeugt 2 Cores: "de" und "en".
-
-  bundle exec ses-apache-solr create_core CORE=de
-  bundle exec ses-apache-solr create_core CORE=en
-
-Die oben erwähnte Datei config/initializers/indexer.rb enthält bereits
-auskommentiert die Konfiguration für die Cores "de" und "en". Diese
-Konfiguration muss nur einkommentiert werden. Die collection_selection geht
-beispielhaft davon aus, dass der Core an der ersten Pfadkomponente entschieden
-wird, d. h.  /de/about wird in "de" indiziert, /en/about in "en".
-
-
-
 
 Komplette Indizierung
 ---------------------------
@@ -266,6 +211,7 @@ Der SES Indexer-Daemon wird neu gestartet und dann alle CMS-Inhalte indiziert:
 
   ssh cms-host
   cd $project/preview/current
+  # TODO
   RAILS_ENV=production script/ses-indexer restart
   RAILS_ENV=production rake index:all
 

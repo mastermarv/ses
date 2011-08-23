@@ -6,8 +6,8 @@ Infopark::SES::Indexer.index_fields do |obj|
       :name => obj.name,
       :path => obj.path,
       :body => plain_body || obj.body,
-      :valid_from => obj.valid_from.to_iso,
-      :valid_until => obj.valid_until.try(:to_iso),
+      :valid_from => obj.valid_from.utc.iso8601,
+      :valid_until => (obj.valid_until && obj.valid_until.utc.iso8601),
     }
   end
 end

@@ -106,6 +106,14 @@ module Infopark
             solr_client.delete_by_id(obj_id)
           end
         end
+
+        @indexed_docs ||= 0
+        @indexed_docs += 1
+        if @indexed_docs > 2
+          solr_clients.each do |collection, solr_client|
+            solr_client.optimize
+          end
+        end
       end
 
       def reindex(obj, solr_clients)

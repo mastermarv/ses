@@ -6,8 +6,8 @@ describe "ActiveMQ + Solr integration" do
 
   def hit_count(q)
     filter_query = [
-      "valid_from:[* TO #{Time.now.to_iso}]",
-      "NOT valid_until:[* TO #{Time.now.to_iso}]"
+      "valid_from:[* TO NOW]",
+      "NOT valid_until:[* TO NOW]"
     ]
     @solr_client.get("select", :params => {:q => q, :fq => filter_query})['response']['numFound']
   end
@@ -168,6 +168,7 @@ describe "ActiveMQ + Solr integration" do
 
 
   it "should find text within a PDF document" do
+    pending
     pdf = Prawn::Document.new
     pdf.text 'This is auniquepdfword in a PDF document'
     blob64 = Base64.encode64(pdf.render)
