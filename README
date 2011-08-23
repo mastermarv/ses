@@ -17,7 +17,10 @@ des Rails Connectors Objekt-Attribute ab, und schickt diese aufbereitet an
 Apache Solr.
 
 Der Installer für Redis (ist Voraussetzung für Resque) ist nicht enthalten.
-
+Die Installation ist auf http://redis.io/download beschrieben. Empfehlung: von
+einem Sysadmin mit einem Paketmanager installieren lassen (z.B. emerge),
+Eintragen in den Default-Runlevel (z.B. rc-update add redis default) und
+starten mit /etc/init.d/redis start.
 
 
 Gem testen
@@ -81,9 +84,6 @@ Projekt-Rails-App benötigt werden:
 
 Ein paar dieser generierten Dateien werden im Folgende beschrieben:
 
-# TODO
-script/ses-indexer ist das Start-Script für den Indexer-Daemon.
-
 In config/initializers/indexer.rb wird festgelegt, welche Attribute eines Obj
 unter welchem Key im Solr-Index gespeichert werden sollen.
 Infopark::SES::Indexer.index_fields liefert für ein Obj einen Hash mit der
@@ -113,13 +113,13 @@ In den Namespace :deploy zusätzlich den Task :restart_ses_indexer einfügen:
 
   task :restart_ses_indexer, :roles => :app do
     if stage == 'cms_preview'
-    # TODO
-      run "cd #{current_path} && RAILS_ENV=#{rails_env} ./script/ses-indexer restart"
+      run "cd #{current_path} && bundle exec rake index:worker:restart"
     end
   end
 
 Und weiter unten:
   after "deploy:restart", "deploy:restart_ses_indexer"
+
 
 
 Beim Deployment installiert Bundler mit der o.g. Option --deployment die Gems
@@ -129,22 +129,6 @@ releases, current usw. Damit werden Gems im User-Space projektbezogen verwaltet.
 Deploy ins Preview-Environment:
 
   cap deploy
-
-
-# TODO
-Manuell kann der Indexer-Daemon übrigens mit folgenden Kommandos gesteuert werden:
-
-  RAILS_ENV=production script/ses-indexer start
-  RAILS_ENV=production script/ses-indexer stop
-  RAILS_ENV=production script/ses-indexer restart
-  RAILS_ENV=production script/ses-indexer status
-
-
-# TODO
-Nach dem Deploy sollte zwar der Indexer-Daemon ses-indexer laufen, jedoch hat
-er zum Apache Active MQ und zum Apache Solr noch keine Verbindung. Deswegen
-werden im Folgenden diese Komponenten installiert:
-
 
 
 
@@ -159,8 +143,7 @@ wird folgermaßen ins CM-Script-Verzeichnis kopiert und anschließend
 konfiguriert:
 
   cp $(bundle show infopark_ses)/cms-callback/* ~/CMS-Fiona/instance/default/script/cm/serverCmds/
-  # TODO
-  gem install stomp --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
+  gem install resque --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
 
 Schließlich muss noch der CM neu gestartet werden, damit er den neuen Callback nutzt:
 
@@ -207,13 +190,10 @@ URL-Bestandteil "de" der Name des Cores.
 Komplette Indizierung
 ---------------------------
 
-Der SES Indexer-Daemon wird neu gestartet und dann alle CMS-Inhalte indiziert:
-
   ssh cms-host
   cd $project/preview/current
-  # TODO
-  RAILS_ENV=production script/ses-indexer restart
-  RAILS_ENV=production rake index:all
+  bundle exec rake index:worker:start
+  bundle exec rake index:all
 
 
 

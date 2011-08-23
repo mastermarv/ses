@@ -1,6 +1,5 @@
-require "stomp"
+require "resque"
 require "rsolr"
-require "progressbar"
 
 require "infopark/ses/filter"
 require "infopark/ses/indexer"

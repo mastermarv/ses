@@ -3,6 +3,10 @@ module Infopark
 
     class Indexer
 
+      def self.queue
+        "index_#{RailsConnector::InfoparkBase.instance_name}"
+      end
+
       # The callback that decides which fields are to be indexed. See
       # config/initializers/indexer.rb. It may return nil to indicate that the
       # object should not be indexed.
@@ -21,74 +25,36 @@ module Infopark
         @@collection_selection_callback = block
       end
 
-      def initialize
-      end
-
-      def self.serve
-        indexer = new
-        indexer.start
-        at_exit { indexer.stop }
-        sleep
-      end
-
-      def start
-        mq_client.subscribe("/topic/#{RailsConnector::InfoparkBase.instance_name}/object-changes",
-            :ack => "client",
-            "activemq.prefetchSize" => 1,
-            "activemq.subscriptionName" => "ses-lucene") do |msg|
+      def self.perform(obj_id)
+        log :info, "New job: index obj #{obj_id}"
+        new.index(obj_id)
+      rescue ActiveRecord::StatementInvalid => e
+        log :error, "[#{e.class}] #{e}"
+        unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.active?
           begin
-            log :info, "Received message from MQ: #{msg.body}"
-            index(msg.body)
-            mq_client.acknowledge(msg)
-
-          rescue ActiveRecord::StatementInvalid => e
-            log :error, "[#{e.class}] #{e}"
-            unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.active?
-              begin
-                log :info, "Detected lost connection. Trying to reconnect..."
-                # a simple reconnect! does not work; need to clear all connections
-                # and then establish a new connection to make things work
-                ActiveRecord::Base.connection_handler.clear_all_connections!
-                db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
-                ActiveRecord::Base.establish_connection(db_yml['cms'])
-              rescue Exception => e
-                log :error, "[#{e.class}] ** #{e}"
-              end
-            end
-
-          rescue StandardError => e
-            log :error, "[#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
-            sleep 10
+            log :warning, "Detected lost connection. Trying to reconnect..."
+            ActiveRecord::Base.connection_handler.clear_all_connections!
+            db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
+            ActiveRecord::Base.establish_connection(db_yml['cms'])
+            retry
+          rescue Exception => e
+            log :error, "[#{e.class}] ** #{e}"
           end
         end
-      end
-
-      def stop
-        mq_client.close
+      rescue StandardError => e
+        log :error, "[#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
       end
 
       def reindex_all
-        pbar = ProgressBar.new("indexing", Obj.count)
-        solr_clients = rsolr_connect
-        solr_clients.each_value do |solr_client|
+        rsolr_connect.each_value do |solr_client|
           solr_client.delete_by_query('*:*')
         end
         Obj.find_each do |obj|
-          reindex(obj, solr_clients)
-          pbar.inc
+          Resque.enqueue(Infopark::SES::Indexer, obj.id)
         end
-        pbar.finish
       end
 
-      private
-
-      @@collections = {:default => nil}
-      @@collection_selection_callback = lambda {:default}
-
-      def rsolr_connect
-        @@collections.merge(@@collections) do |k, url|
-          RSolr.connect(:url => url)
-        end
+      def initialize
       end
 
       def index(obj_id)
@@ -116,15 +82,15 @@ module Infopark
         end
       end
 
-      def reindex(obj, solr_clients)
-        if fields = fields_for(obj)
-          collections = collections_for(obj)
-          solr_clients.each do |collection, solr_client|
-            if collections.include?(collection)
-              log :info, "Reindexing obj #{obj.id}: #{obj.path} (collection: #{collection})"
-              solr_client.add(fields)
-            end
-          end
+
+      private
+
+      @@collections = {:default => nil}
+      @@collection_selection_callback = lambda {:default}
+
+      def rsolr_connect
+        @@collections.merge(@@collections) do |k, url|
+          RSolr.connect(:url => url)
         end
       end
 
@@ -136,27 +102,11 @@ module Infopark
         Array(@@collection_selection_callback.call(obj))
       end
 
-      def mq_client
-        @mq_client ||= begin
-          Stomp::Client.new(
-            :hosts => [
-              {
-                :login => "",
-                :passcode => "",
-                :host => "localhost",
-                :port => 61613,
-                :ssl => false
-              }
-            ],
-            :connect_headers => {
-              'client-id' => 'ses-lucene ' + @@collections.keys.sort_by{|k|k.to_s}.join('/')
-            }
-          )
-        end
+      def log(severity, msg)
+        self.class.log(severity, msg)
       end
 
-      # Log messages appear in log/ses-indexer.log
-      def log(severity, msg)
+      def self.log(severity, msg)
         puts "[#{Time.new.strftime('%Y-%m-%d %H:%M:%S')}] #{severity.to_s.upcase} #{msg}"
       end
 

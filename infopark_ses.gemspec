@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email       = ["info@infopark.de"]
   s.homepage    = "http://www.infopark.de/"
   s.summary     = %q{Infopark SES Solr integration}
-  s.description = %q{Infopark SES provides a daemon which receives object change notifications via Apache Active MQ and sends formatted indexing request to Solr}
+  s.description = %q{Infopark SES integrates Resque and Solr for indexing CMS objects.}
 
   s.files         = `git ls-files`.split("\n").reject {|p| p =~ /^test_app/}
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
@@ -19,8 +19,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activerecord", "~> 3.0.7"
   s.add_dependency "infopark_rails_connector"
-  s.add_dependency "stomp"
+  s.add_dependency "resque"
+  s.add_dependency "SystemTimer"
   s.add_dependency "rsolr"
-  s.add_dependency "daemon-spawn"
-  s.add_dependency "ruby-progressbar"
 end

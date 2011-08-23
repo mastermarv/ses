@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'prawn'
 require 'base64'
 
-describe "ActiveMQ + Solr integration" do
+describe "Resque + Solr integration" do
 
   def hit_count(q)
     filter_query = [
@@ -13,32 +13,21 @@ describe "ActiveMQ + Solr integration" do
   end
 
   before(:all) do
-    RailsConnector::Configuration.instance_name = 'seslucenmy'
+    system "rake index:worker:start INTERVAL=1"
 
     @cm = TestCM.new
     @cm.setup
 
-    @mq = TestMQ.new
-    @mq.setup
-
     @solr = TestSolr.new
     @solr.setup
-  end
 
-  before do
     @solr_client = RSolr.connect
-    @ses_indexer = Infopark::SES::Indexer.new
-    @ses_indexer.start
-  end
-
-  after do
-    @ses_indexer.stop
   end
 
   after(:all) do
     @solr.teardown
-    @mq.teardown
     @cm.teardown
+    system "rake index:worker:stop"
   end
 
 
@@ -179,52 +168,6 @@ describe "ActiveMQ + Solr integration" do
     "
 
     lambda { hit_count('body:auniquepdfword') }.should eventually_be(1)
-  end
-
-
-  it "should retry after a reset connection during indexing all" do
-    pending "needs cleanup"
-    # @ses_indexer.stop
-    # @cm.tcl "
-    #   obj root create name econnreset objClass generic
-    #   obj withPath /econnreset editedContent set blob.base64 {JQ==}
-    #   obj withPath /econnreset release
-    # "
-
-    # working_connection = RSolr.connect
-    # working_connection.should_receive(:request).and_return({"" => "econnreset"})
-
-    # broken_connection = RSolr.connect
-    # broken_connection.should_receive(:request).and_raise("connection error")
-
-    # RSolr.should_receive(:connect).and_return(broken_connection, working_connection)
-
-    # @ses_indexer = Infopark::SES::Indexer.new
-    # $stderr.puts ""
-    # @ses_indexer.reindex_all
-
-    # lambda { hit_count('body:econnreset') }.should eventually_be(1)
-  end
-
-
-  it "should retry indexing after an error" do
-    pending "needs cleanup"
-    # $stderr.stub!(:puts)
-
-    # # simulate 10 times an exception in fields_for
-    # @ses_indexer.stub!(:fields_for).and_return do
-    #   @counter = (@counter || 0).next
-    #   raise "error" if @counter < 10
-    #   {
-    #     :id => 2001,
-    #     :name => 'ErrorMock',
-    #     :valid_from => '19750101000000'
-    #   }
-    # end
-
-    # @cm.tcl "obj withPath / set name errorTest"
-
-    # lambda { hit_count('name:ErrorMock') }.should eventually_be(1)
   end
 
 end

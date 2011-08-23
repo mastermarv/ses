@@ -10,11 +10,6 @@ module Ses
       copy_file "indexer.rb", "config/initializers/indexer.rb"
     end
 
-    def copy_script_files
-      copy_file "ses-indexer", "script/ses-indexer"
-      system "chmod +x script/ses-indexer"
-    end
-
   end
 
 end
