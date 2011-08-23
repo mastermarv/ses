@@ -51,7 +51,6 @@ module Infopark
                 ActiveRecord::Base.connection_handler.clear_all_connections!
                 db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
                 ActiveRecord::Base.establish_connection(db_yml['cms'])
-                mq_client.unreceive(msg, :max_redeliveries => 1.0/0)
               rescue Exception => e
                 log :error, "[#{e.class}] ** #{e}"
               end
@@ -59,7 +58,6 @@ module Infopark
 
           rescue StandardError => e
             log :error, "[#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
-            mq_client.unreceive(msg, :max_redeliveries => 1.0/0)
             sleep 10
           end
         end
@@ -78,9 +76,6 @@ module Infopark
         Obj.find_each do |obj|
           reindex(obj, solr_clients)
           pbar.inc
-        end
-        solr_clients.each_value do |solr_client|
-          solr_client.commit
         end
         pbar.finish
       end
@@ -105,14 +100,11 @@ module Infopark
         solr_clients.each do |collection, solr_client|
           if fields && collections.include?(collection)
             log :info, "Indexing obj #{obj.id} (#{obj.path}) into collection #{collection}"
-            # FIXED in rsolr master, gem not yet released:
-            #solr_client.add(fields, {:commitWithin => 1.0})
             solr_client.add(fields)
           else
             log :info, "Deleting obj #{obj_id} from collection #{collection}"
             solr_client.delete_by_id(obj_id)
           end
-          solr_client.commit
         end
       end
 
