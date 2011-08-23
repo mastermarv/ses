@@ -31,18 +31,12 @@ module Infopark
       rescue ActiveRecord::StatementInvalid => e
         log :error, "[#{e.class}] #{e}"
         unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.active?
-          begin
-            log :warning, "Detected lost connection. Trying to reconnect..."
-            ActiveRecord::Base.connection_handler.clear_all_connections!
-            db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
-            ActiveRecord::Base.establish_connection(db_yml['cms'])
-            retry
-          rescue Exception => e
-            log :error, "[#{e.class}] ** #{e}"
-          end
+          log :warning, "Detected lost connection. Trying to reconnect..."
+          ActiveRecord::Base.connection_handler.clear_all_connections!
+          db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
+          ActiveRecord::Base.establish_connection(db_yml['cms'])
+          retry
         end
-      rescue StandardError => e
-        log :error, "[#{e.class}] #{e}\n  #{(e.backtrace[0,4] + ['...']).join("\n  ")}"
       end
 
       def reindex_all

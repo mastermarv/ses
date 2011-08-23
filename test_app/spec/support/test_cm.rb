@@ -27,6 +27,8 @@ class TestCM
     system "#{instance}/bin/CM -restore #{base}/share/initDump"
     system "#{instance}/bin/CM -railsify"
     system "gem install vendor/cache/resque-*.gem --no-ri --no-rdoc --no-user-install --install-dir #{instance}/script/gems"
+    system "gem install vendor/cache/SystemTimer-*.gem --no-ri --no-rdoc --no-user-install --install-dir #{instance}/script/gems"
+    system "gem install vendor/cache/json-*.gem --no-ri --no-rdoc --no-user-install --install-dir #{instance}/script/gems"
     FileUtils.cp "../cms-callback/objectChangedCallback.tcl", "#{instance}/script/cm/serverCmds/"
     FileUtils.cp "../cms-callback/publish_object_changes.rb", "#{instance}/script/cm/serverCmds/"
   end

@@ -13,7 +13,7 @@ describe "Resque + Solr integration" do
   end
 
   before(:all) do
-    system "rake index:worker:start INTERVAL=1"
+    system "bundle exec rake index:worker:start INTERVAL=1"
 
     @cm = TestCM.new
     @cm.setup
@@ -27,7 +27,7 @@ describe "Resque + Solr integration" do
   after(:all) do
     @solr.teardown
     @cm.teardown
-    system "rake index:worker:stop"
+    system "bundle exec rake index:worker:stop"
   end
 
 
