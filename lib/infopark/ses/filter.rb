@@ -35,8 +35,8 @@ module Infopark
 
       # convert the object's body to HTML using the Verity input filter (IF)
       def self.html_via_verity(obj)
-        in_file = Tempfile.new("IF.in.#{identifier(obj)}.", "#{Rails.root}/tmp")
-        out_file = Tempfile.new("IF.out.#{identifier(obj)}.", "#{Rails.root}/tmp")
+        in_file = Tempfile.new("IF.in.#{identifier(obj)}.", "#{::Rails.root}/tmp")
+        out_file = Tempfile.new("IF.out.#{identifier(obj)}.", "#{::Rails.root}/tmp")
         in_file.syswrite obj.body
 
         cmd = "#{@@if_options[:bin_path]} #{@@if_options[:timeout_seconds]} #{in_file.path} " +
@@ -46,8 +46,6 @@ module Infopark
         out_file.reopen(out_file.path, 'r')
         out_file.read
       end
-
-      private
 
       def self.verity_input_filter=(options)
         @@if_options = options
