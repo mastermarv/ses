@@ -1,20 +1,20 @@
 Beschreibung
 ===================
 
-Infopark SES ist ein Ruby-Gem, welches zum Zweck der Indizierung von
-CMS-Inhalten vom CM Nachrichten über geänderte CMS-Objekte entgegen nimmt,
-Indizierungs- oder Deindizierungs-Anfragen erzeugt und diese an Solr sendet.
+Infopark SES ist ein Ruby-Gem, das zum Zweck der Indizierung von CMS-Inhalten
+vom CM Nachrichten über geänderte CMS-Objekte entgegen nimmt, Indizierungs-
+oder Deindizierungs-Anfragen erzeugt und diese an Solr sendet.
 
 Das Infopark SES Ruby-Gem ergänzt eine bestehende Rails-App, typischerweise die
-Website-App eines konkreten Projektes. Die Rails-App muss bereits den Infopark
+Website-App eines konkreten Projekts. Die Rails-App muss bereits den Infopark
 Rails Connector einsetzen. Infopark SES setzt eine Rails Connector-Anbindung
 zur CMS-Datenbank voraus.
 
 Infopark SES besteht aus dem SES Indexer-Resque-Worker, einem Installer für
-Apache Solr und der Logik zu Verdrahten dieser Software-Komponenten. Der
-eigentliche Kern des Infopark SES ist der Indexer.  Er fragt unter Benutzung
-des Rails Connectors Objekt-Attribute ab, und schickt diese aufbereitet an
-Apache Solr.
+Apache Solr und der Logik zum Verdrahten dieser Software-Komponenten. Der
+eigentliche Kern des Infopark SES ist der Indexer. Er fragt unter Benutzung des
+Rails Connectors Objekt-Felder ab, und schickt diese aufbereitet an Apache
+Solr.
 
 Der Installer für Redis (ist Voraussetzung für Resque) ist nicht enthalten.
 Die Installation ist auf http://redis.io/download beschrieben. Empfehlung: von
