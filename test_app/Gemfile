@@ -1,7 +1,9 @@
 source 'http://rubygems.org'
 
-gem "rails", "3.0.9"
+gem "rails"
 gem "infopark_rails_connector"
+gem "infopark_fiona_connector"
+gem "infopark_crm_connector"
 gem "infopark_ses", :path => ".."
 gem "sqlite3"
 gem "mysql"

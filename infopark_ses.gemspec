@@ -17,8 +17,6 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency "activerecord", "~> 3.0.7"
-  s.add_dependency "infopark_rails_connector"
   s.add_dependency "resque"
   s.add_dependency "SystemTimer"
   s.add_dependency "rsolr"
