@@ -33,7 +33,7 @@ module Infopark
         unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.active?
           log :warning, "Detected lost connection. Trying to reconnect..."
           ActiveRecord::Base.connection_handler.clear_all_connections!
-          db_yml = YAML::load(File.read(Rails.root + 'config/database.yml'))
+          db_yml = YAML::load(File.read(::Rails.root + 'config/database.yml'))
           ActiveRecord::Base.establish_connection(db_yml['cms'])
           retry
         end
