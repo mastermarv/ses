@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    infopark_ses (6.8.0.beta.8)
+    infopark_ses (6.8.0.beta.9)
       SystemTimer
       resque
       rsolr
