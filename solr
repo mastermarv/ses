@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+# Avoid Invalid gemspec warnings
+$stderr = File.open("/dev/null", "w")
+
+require "rubygems"
+require "rake"
+require "pathname"
+require 'net/http'
+
+# Reenable stderr
+$stderr = STDERR
+
+
+Rake.application.init($0)
+
+
+install_dir = Pathname("~").expand_path
+
+def ping_solr
+  Net::HTTP.new("localhost", 8983).start do |http|
+    http.read_timeout = 5
+    response = http.get("/solr")
+  end
+  true
+rescue Exception => e
+  false
+end
+
+
+desc "Start the Apache Solr server process"
+task :start do
+  unless ping_solr
+    chdir(install_dir + "apache-solr/example") do
+      sh "nohup java -Xms256M -Xmx1024M -DSTOP.PORT=8079 -DSTOP.KEY=stop -Dsolr.solr.home=#{install_dir}/apache-solr/cms -jar start.jar >> #{install_dir}/apache-solr/cms/logs/server.log 2>&1 &"
+    end
+    until ping_solr
+      puts "Waiting for Solr to start up"
+      sleep 1
+    end
+    puts "Solr is up and running"
+  end
+end
+
+
+desc "Stop the Apache Solr server process"
+task :stop do
+  if ping_solr
+    chdir(install_dir + "apache-solr/example") do
+      sh "java -DSTOP.PORT=8079 -DSTOP.KEY=stop -Dsolr.solr.home=#{install_dir}/apache-solr/cms -jar start.jar --stop >> #{install_dir}/apache-solr/cms/logs/server.log 2>&1"
+    end
+  end
+end
+
+
+desc "Status of the Apache Solr server process"
+task :status do
+  if ping_solr
+    puts "OK: Solr is running"
+  else
+    puts "Solr is not running"
+  end
+end
+
+
+Rake.application.top_level

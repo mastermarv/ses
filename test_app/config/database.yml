@@ -22,10 +22,10 @@ production:
   timeout: 5000
 
 cms:
-  adapter: mysql
+  adapter: mysql2
   host: localhost
   database: test_ses_lucene
-  username: test_ses_lucene
-  password: test_ses_lucene
+  username: root
+  password:
   reconnect: true
   encoding: utf8

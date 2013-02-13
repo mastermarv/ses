@@ -9,8 +9,8 @@ describe "Filtering via Verity IF" do
     @pdf_body = pdf.render
 
     Infopark::SES::Filter.verity_input_filter = {
-      :bin_path => Rails.root + "../../nps/gen/install/linux/instance/default/bin/IF",
-      :cfg_path => Rails.root + "../../nps/gen/install/linux/instance/default/config/IF.cfg.indexing",
+      :bin_path => File.expand_path("~/nps/gen/install/linux/instance/default/bin/IF"),
+      :cfg_path => File.expand_path("~/nps/gen/install/linux/instance/default/config/IF.cfg.indexing"),
       :timeout_seconds => 30
     }
   end

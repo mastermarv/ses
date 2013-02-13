@@ -1,13 +1,14 @@
 source 'http://rubygems.org'
 
+gem "rake"
 gem "rails"
 gem "infopark_rails_connector"
 gem "infopark_fiona_connector"
 gem "infopark_crm_connector"
 gem "infopark_ses", :path => ".."
 gem "sqlite3"
-gem "mysql"
-gem "mysql_blob_streaming", "1.1.1"
+gem "mysql2"
+gem "mysql_blob_streaming", "2.0.0"
 
 group :test do
   gem "rspec"

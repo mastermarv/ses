@@ -26,19 +26,26 @@ starten mit /etc/init.d/redis start.
 Gem testen
 ==============
 
-Es wird eine Fiona-6.7-Entwicklungsumgebung in ../fiona vorausgesetzt, die auch
+Es wird eine Fiona-6.7-Entwicklungsumgebung per Vagrant in ~/nps vorausgesetzt, die auch
 bereits gebaut sein muss:
 
-  git clone -b 6.7-maint git@github.com:infopark/fiona.git
+  git clone -b 6.8-maint git@github.com:infopark/fiona.git
   cd fiona
-  git submodule update --init --recursive
-  ln -s ../licenses/infopark-internal-restricted-license.xml config/license.xml
-  rake build
+    git submodule update --init --recursive
+
+  vagrant ssh
+    cd nps
+    ln -s ~/licenses/infopark-internal-restricted-license.xml config/license.xml
+    rake build
 
 
 Die Tests des Infopark SES Gems werden mit
 
-  rake test
+  vagrant ssh
+    cd ~/ses
+    mysqladmin -uroot create test_ses_lucene
+    bundle
+    bundle exec rake test
 
 ausgeführt. Die Tests sind vollständige Integrationstests. Sie liegen in
 test_app. Die von der test_app verwendeten Gems liegen in vendor/cache.

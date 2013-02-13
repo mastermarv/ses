@@ -3,7 +3,7 @@ class TestCM
   attr_reader :base, :instance
 
   def initialize
-    @base = Pathname("../../fiona/gen/install/linux")
+    @base = Pathname("~/nps/gen/install/linux").expand_path
     @instance = base + "instance/seslucenmy"
   end
 
