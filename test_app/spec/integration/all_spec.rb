@@ -13,7 +13,7 @@ describe "Resque + Solr integration" do
   end
 
   before(:all) do
-    system "bundle exec rake index:worker:start INTERVAL=1"
+    system "bundle exec rake index:worker:start INTERVAL=1 RAILS_ENV=production"
 
     @cm = TestCM.new
     @cm.setup

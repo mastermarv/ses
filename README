@@ -202,8 +202,8 @@ Komplette Indizierung
 
   ssh cms-host
   cd $project/preview/current
-  bundle exec rake index:worker:start
-  bundle exec rake index:all
+  RAILS_ENV=production bundle exec rake index:worker:start
+  RAILS_ENV=production bundle exec rake index:all
 
 
 
