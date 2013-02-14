@@ -80,7 +80,7 @@ module Infopark
       private
 
       @@collections = {:default => nil}
-      @@collection_selection_callback = lambda {:default}
+      @@collection_selection_callback = lambda {|obj| :default}
 
       def rsolr_connect
         @@collections.merge(@@collections) do |k, url|

@@ -18,6 +18,5 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "resque"
-  s.add_dependency "SystemTimer"
   s.add_dependency "rsolr"
 end

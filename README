@@ -50,6 +50,8 @@ Die Tests des Infopark SES Gems werden mit
 ausgeführt. Die Tests sind vollständige Integrationstests. Sie liegen in
 test_app. Die von der test_app verwendeten Gems liegen in vendor/cache.
 
+Verwendet wird Ruby 1.9.
+
 
 
 Gem bauen
@@ -151,7 +153,6 @@ konfiguriert:
 
   cp $(bundle show infopark_ses)/cms-callback/* ~/CMS-Fiona/instance/default/script/cm/serverCmds/
   gem install resque --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
-  gem install SystemTimer --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
   gem install json --no-ri --no-rdoc --no-user-install --install-dir ~/CMS-Fiona/instance/default/script/gems
 
 Schließlich muss noch der CM neu gestartet werden, damit er den neuen Callback nutzt:
