@@ -2,7 +2,6 @@ PATH
   remote: ..
   specs:
     infopark_ses (6.8.0.beta.9)
-      SystemTimer
       resque
       rsolr
 
@@ -10,7 +9,6 @@ GEM
   remote: http://rubygems.org/
   specs:
     Ascii85 (1.0.2)
-    SystemTimer (1.2.3)
     actionmailer (3.2.12)
       actionpack (= 3.2.12)
       mail (~> 2.4.4)

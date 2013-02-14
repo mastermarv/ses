@@ -10,7 +10,6 @@ Dir["#{INSTANCE_DIR}/script/gems/gems/*/"].sort.reverse.each do |gem_dir|
   end
 end
 
-require 'system_timer'
 require 'resque'
 
 module Infopark
