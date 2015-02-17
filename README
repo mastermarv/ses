@@ -1,7 +1,7 @@
 Beschreibung
 ===================
 
-Infopark SES ist ein Ruby-Gem, das zum Zweck der Indizierung von CMS-Inhalten
+Infopark SES ist ein Ruby-Gem, das zum Zweck der Indizierung von Infopark CMS Fiona-Inhalten
 vom CM Nachrichten über geänderte CMS-Objekte entgegen nimmt, Indizierungs-
 oder Deindizierungs-Anfragen erzeugt und diese an Solr sendet.
 
@@ -22,6 +22,10 @@ einem Sysadmin mit einem Paketmanager installieren lassen (z.B. emerge),
 Eintragen in den Default-Runlevel (z.B. rc-update add redis default) und
 starten mit /etc/init.d/redis start.
 
+Lizenz
+========
+
+Das Gem steht unter LGPL v3. Details siehe LICENSE.md.
 
 Gem testen
 ==============
