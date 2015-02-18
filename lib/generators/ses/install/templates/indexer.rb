@@ -1,5 +1,7 @@
 Infopark::SES::Indexer.index_fields do |obj|
-  if obj.released? && !obj.suppress_export? && !obj.image?
+  version_present = obj.released?
+  version_present = obj.released? || obj.edited? if Rails.env == "preview"
+  if version_present && !obj.suppress_export? && obj.searchable?
     plain_body = Infopark::SES::Filter::text_via_solr_cell(obj, :fallback => '') if obj.generic?
     {
       :id => obj.id,
@@ -17,11 +19,9 @@ end
 # Multicore configuration:
 
 # Infopark::SES::Indexer.collections = {
-#   "de" => 'http://127.0.0.1:8983/solr/de',
-#   "en" => 'http://127.0.0.1:8983/solr/en',
+#   RailsConnector::CmsBaseModel.instance_name => "http://127.0.0.1:8983/solr/#{RailsConnector::CmsBaseModel.instance_name}_#{Rails.env}"
 # }
 #
 # Infopark::SES::Indexer.collection_selection do |obj|
-#   language_path_component = obj.path.split("/", 3)[1]
-#   [language_path_component] & %w(de en)
+#   RailsConnector::CmsBaseModel.instance_name
 # end

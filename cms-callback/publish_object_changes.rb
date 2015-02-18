@@ -16,12 +16,15 @@ module Infopark
   module SES
     class Indexer
       def self.queue
-        "index_#{INSTANCE}"
+        "index_#{INSTANCE}_#{$mode}"
       end
     end
   end
 end
 
 ARGF.each_line do |obj_id|
+  $mode="production"
+  Resque.enqueue(Infopark::SES::Indexer, obj_id.to_i)
+  $mode="preview"
   Resque.enqueue(Infopark::SES::Indexer, obj_id.to_i)
 end
